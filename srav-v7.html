@@ -1,0 +1,2005 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+<title>SRAV – Constructeur de Séance v5</title>
+<link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:ital,wght@0,400;0,600;0,700;0,900;1,700&family=Lato:wght@400;700&display=swap" rel="stylesheet">
+<style>
+:root {
+  --blue:   #0055a4;
+  --blue2:  #003f80;
+  --yellow: #f5c800;
+  --red:    #d62b2b;
+  --green:  #1a8a4a;
+  --orange: #e07b00;
+  --slate:  #1c2b3a;
+  --ink:    #2d3a47;
+  --mist:   #f2f5f8;
+  --line:   #dde3ea;
+  --white:  #ffffff;
+  --b0:     #7b5ea7;
+  --b0bg:   #f3effe;
+  --b1:     #d62b2b;
+  --b1bg:   #fdecea;
+  --b2:     #e07b00;
+  --b2bg:   #fef3e2;
+  --b3:     #1a8a4a;
+  --b3bg:   #e6f4ec;
+}
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: 'Lato', sans-serif; background: var(--mist); color: var(--ink); min-height: 100vh; }
+.bc { font-family: 'Barlow Condensed', sans-serif; }
+
+/* ── HEADER ── */
+header {
+  background: var(--slate); padding: 0 20px;
+  display: flex; align-items: center; justify-content: space-between;
+  height: 56px; position: sticky; top: 0; z-index: 90;
+  box-shadow: 0 2px 12px rgba(0,0,0,.3);
+}
+.logo { display: flex; align-items: center; gap: 10px; }
+.logo-dot {
+  width: 32px; height: 32px; background: var(--red); border-radius: 50%;
+  display: flex; align-items: center; justify-content: center;
+  font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 18px; color: white;
+}
+.logo-text { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 18px; color: white; text-transform: uppercase; line-height: 1.1; letter-spacing: .03em; }
+.logo-text em { color: var(--yellow); font-style: normal; }
+.logo-badge { font-size: 9px; font-weight: 700; background: var(--yellow); color: var(--slate); padding: 2px 6px; border-radius: 3px; letter-spacing: .06em; margin-left: 6px; }
+
+/* ── STEPPER ── */
+.stepper { display: flex; align-items: center; background: rgba(255,255,255,.07); border-radius: 6px; overflow: hidden; }
+.step-btn { padding: 6px 14px; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 12px; text-transform: uppercase; letter-spacing: .06em; color: rgba(255,255,255,.4); background: transparent; border: none; cursor: pointer; transition: all .2s; border-right: 1px solid rgba(255,255,255,.08); white-space: nowrap; }
+.step-btn:last-child { border-right: none; }
+.step-btn.done { color: rgba(255,255,255,.6); }
+.step-btn.active { background: rgba(255,255,255,.12); color: var(--yellow); }
+.step-btn .sn { display: inline-flex; align-items: center; justify-content: center; width: 16px; height: 16px; border-radius: 50%; font-size: 10px; margin-right: 5px; background: rgba(255,255,255,.15); color: white; }
+.step-btn.active .sn { background: var(--yellow); color: var(--slate); }
+.step-btn.done .sn { background: var(--green); color: white; }
+
+/* ── SCREENS ── */
+.screen { display: none; padding: 20px; max-width: 940px; margin: 0 auto; }
+.screen.active { display: block; animation: fadeUp .25s ease; }
+@keyframes fadeUp { from { opacity:0; transform:translateY(10px); } to { opacity:1; transform:translateY(0); } }
+
+/* ── SECTION HEADERS ── */
+.sh { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 22px; text-transform: uppercase; letter-spacing: .02em; color: var(--slate); margin-bottom: 4px; }
+.sub { font-size: 13px; color: #7a8a99; margin-bottom: 20px; }
+
+/* ── CARDS ── */
+.card { background: white; border-radius: 12px; box-shadow: 0 1px 4px rgba(0,0,0,.07); overflow: hidden; margin-bottom: 16px; }
+.card-head { padding: 14px 18px 10px; border-bottom: 1px solid var(--line); display: flex; align-items: center; gap: 10px; }
+.card-head-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+.card-title { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 15px; text-transform: uppercase; letter-spacing: .05em; color: var(--slate); }
+.card-body { padding: 16px 18px; }
+
+/* ── INPUTS ── */
+.field { margin-bottom: 14px; }
+.field:last-child { margin-bottom: 0; }
+.label { display: block; font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: #8a9aaa; margin-bottom: 5px; }
+input[type=text], input[type=number], select, textarea {
+  width: 100%; padding: 9px 12px; border: 1.5px solid var(--line); border-radius: 8px;
+  font-size: 14px; font-family: 'Lato', sans-serif; color: var(--slate); background: #fafbfc;
+  outline: none; transition: border-color .15s; -webkit-appearance: none;
+}
+input:focus, select:focus, textarea:focus { border-color: var(--blue); background: white; }
+.row2 { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+.row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; }
+
+/* ── BLOC PILLS SELECTOR ── */
+.bloc-selector { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 6px; }
+.bloc-pill {
+  padding: 7px 14px; border-radius: 8px; border: 2px solid var(--line);
+  font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 13px;
+  cursor: pointer; transition: all .15s; background: white; color: var(--ink);
+  display: flex; align-items: center; gap: 6px;
+}
+.bloc-pill:hover { border-color: #aac0d8; }
+.bloc-pill.b0.sel { background: var(--b0bg); border-color: var(--b0); color: var(--b0); }
+.bloc-pill.b1.sel { background: var(--b1bg); border-color: var(--b1); color: var(--b1); }
+.bloc-pill.b2.sel { background: var(--b2bg); border-color: var(--b2); color: var(--b2); }
+.bloc-pill.b3.sel { background: var(--b3bg); border-color: var(--b3); color: var(--b3); }
+.bloc-dot { width: 8px; height: 8px; border-radius: 50%; }
+
+/* ── NIVEAU PILLS ── */
+.niv-selector { display: flex; gap: 6px; flex-wrap: wrap; }
+.niv-pill {
+  padding: 5px 12px; border-radius: 20px; border: 1.5px solid var(--line);
+  font-size: 12px; font-weight: 700; cursor: pointer; transition: all .15s;
+  background: var(--mist); color: var(--ink);
+}
+.niv-pill:hover { border-color: #aac0d8; }
+.niv-pill.sel { background: var(--blue); border-color: var(--blue); color: white; }
+
+/* ── GROUPE BUILDER ── */
+.grp-row { display: grid; grid-template-columns: 110px 1fr 75px 32px; gap: 8px; align-items: center; padding: 10px 0; border-bottom: 1px solid var(--line); }
+.grp-row:first-child { border-top: 1px solid var(--line); }
+.grp-label { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 15px; display: flex; align-items: center; gap: 6px; }
+.grp-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.grp-effectif { font-size: 13px; color: #7a8a99; text-align: center; }
+.btn-ghost { width: 28px; height: 28px; border-radius: 6px; border: 1px solid var(--line); background: var(--mist); color: #cc4444; font-size: 13px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all .15s; }
+.btn-ghost:hover { background: #fee; border-color: #cc4444; }
+
+/* ── BLOC TAGS ── */
+.bloc-tag { display: inline-flex; align-items: center; gap: 4px; padding: 3px 8px; border-radius: 4px; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 11px; text-transform: uppercase; }
+.bloc-tag.b0 { background: var(--b0bg); color: var(--b0); }
+.bloc-tag.b1 { background: var(--b1bg); color: var(--b1); }
+.bloc-tag.b2 { background: var(--b2bg); color: var(--b2); }
+.bloc-tag.b3 { background: var(--b3bg); color: var(--b3); }
+
+/* ── FILTERS BAR (étape 2) ── */
+.filters-bar {
+  background: white; border-radius: 10px; padding: 14px 18px;
+  border: 1px solid var(--line); margin-bottom: 14px;
+  display: flex; gap: 14px; flex-wrap: wrap; align-items: flex-start;
+}
+.filters-bar .filter-group { flex: 1; min-width: 200px; }
+.filters-bar .filter-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: #8a9aaa; margin-bottom: 7px; }
+
+/* ── SITUATION CARDS ── */
+.sit-grid { display: flex; flex-direction: column; gap: 8px; }
+.sit-card { border: 1.5px solid var(--line); border-radius: 10px; padding: 12px 14px; cursor: pointer; transition: all .15s; position: relative; }
+.sit-card:hover { border-color: #aac0d8; background: #fafcff; }
+.sit-card.selected { border-color: var(--blue); background: #f0f6ff; box-shadow: 0 0 0 3px rgba(0,85,164,.1); }
+.sit-card-top { display: flex; align-items: flex-start; gap: 10px; }
+.sit-check { width: 20px; height: 20px; border-radius: 5px; border: 2px solid var(--line); flex-shrink: 0; margin-top: 1px; background: white; transition: all .15s; display: flex; align-items: center; justify-content: center; }
+.sit-card.selected .sit-check { background: var(--blue); border-color: var(--blue); color: white; font-size: 11px; }
+.sit-title { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 16px; color: var(--slate); line-height: 1.2; }
+.sit-comp { font-size: 11px; color: #5a7a9a; margin-top: 2px; font-style: italic; }
+.sit-badges { display: flex; gap: 5px; margin-top: 4px; flex-wrap: wrap; }
+.sit-niv-badge { font-size: 9px; font-weight: 700; padding: 2px 6px; border-radius: 3px; text-transform: uppercase; letter-spacing: .04em; background: #f0f0f0; color: #555; }
+.sit-niv-badge.niv-1 { background: #fff3cd; color: #7a5c00; }
+.sit-niv-badge.niv-2 { background: #d1ecf1; color: #0c5460; }
+.sit-niv-badge.niv-3 { background: #d4edda; color: #155724; }
+.sit-spiral { font-size: 9px; background: #f3eaff; color: #7b5ea7; padding: 2px 6px; border-radius: 3px; font-weight: 700; }
+.sit-detail { font-size: 12px; color: #6a7a88; margin-top: 6px; line-height: 1.5; padding-left: 30px; display: none; }
+.sit-card.selected .sit-detail { display: block; }
+.sit-meta { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+.sit-tag { font-size: 10px; font-weight: 700; padding: 2px 7px; border-radius: 3px; text-transform: uppercase; letter-spacing: .04em; }
+.tag-obj { background: #e8f0fe; color: #1a56cc; }
+.tag-crit { background: #e6f4ec; color: #1a6e3c; }
+
+/* ── GROUPE SECTION (étape 2) ── */
+.grp-section { border-radius: 10px; overflow: hidden; margin-bottom: 16px; border: 1px solid var(--line); }
+.grp-section-head { padding: 12px 16px; display: flex; align-items: center; gap: 10px; }
+.grp-section-head .grp-num { width: 28px; height: 28px; border-radius: 7px; display: flex; align-items: center; justify-content: center; font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 16px; color: white; flex-shrink: 0; }
+.grp-section-head .info { flex: 1; }
+.grp-section-head .gsh-title { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 16px; color: var(--slate); }
+.grp-section-head .gsh-sub { font-size: 11px; color: #8a9aaa; margin-top: 1px; }
+.grp-section-body { padding: 14px 16px; background: white; }
+
+/* ── BLOC3 ALERT ── */
+.bloc3-notice {
+  background: #e6f4ec; border-left: 4px solid var(--green);
+  padding: 12px 16px; border-radius: 0 8px 8px 0; margin-bottom: 14px;
+  font-size: 12px; color: #1a3a2a;
+}
+.bloc3-notice strong { display: block; font-size: 13px; margin-bottom: 4px; color: var(--green); }
+
+/* ── COMP PILLS ── */
+.comp-section { margin-bottom: 14px; }
+.comp-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: #8a9aaa; margin-bottom: 8px; }
+.comp-pills { display: flex; flex-wrap: wrap; gap: 6px; }
+.comp-pill { padding: 5px 11px; border-radius: 20px; border: 1.5px solid var(--line); background: var(--mist); font-size: 12px; font-weight: 700; cursor: pointer; transition: all .15s; color: var(--ink); display: inline-flex; align-items: center; gap: 5px; }
+.comp-pill:hover { border-color: #aac0d8; background: #f0f6ff; }
+/* Sélection manuelle = bleu plein */
+.comp-pill.sel-manual { border-color: var(--blue); background: var(--blue); color: white; }
+/* Sélection auto (déduite des situations) = contour bleu, fond clair */
+.comp-pill.sel-auto { border-color: var(--blue); background: #e8f0fb; color: var(--blue); }
+/* Les deux (auto + confirmé manuellement) = bleu plein + badge ✓ */
+.comp-pill.sel-both { border-color: var(--blue2); background: var(--blue); color: white; }
+.comp-pill-niv { font-size: 9px; opacity: .7; }
+.comp-pill-badge { font-size: 9px; padding: 1px 5px; border-radius: 3px; font-weight: 700; line-height: 1.4; }
+.badge-auto { background: rgba(255,255,255,.25); color: inherit; }
+.badge-auto-blue { background: rgba(0,85,164,.15); color: var(--blue); }
+.badge-manual { background: rgba(255,255,255,.3); color: white; }
+
+/* ── BILAN D'ÉVALUATION ── */
+.bilan-section { margin-top: 16px; border-top: 1px solid var(--line); padding-top: 14px; }
+.bilan-title { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: #8a9aaa; margin-bottom: 10px; }
+.bilan-grid { display: flex; flex-direction: column; gap: 6px; margin-bottom: 10px; }
+.bilan-row { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; padding: 6px 10px; border-radius: 6px; background: var(--mist); }
+.bilan-comp-name { font-size: 12px; color: var(--slate); }
+.bilan-btns { display: flex; gap: 4px; }
+.bilan-btn { padding: 4px 8px; border-radius: 4px; border: 1.5px solid var(--line); background: white; font-size: 10px; font-weight: 700; cursor: pointer; transition: all .12s; color: #666; white-space: nowrap; }
+.bilan-btn:hover { border-color: #aac0d8; }
+.bilan-btn.sel-ok { background: #d4edda; border-color: #1a8a4a; color: #1a5c30; }
+.bilan-btn.sel-prog { background: #fff3cd; border-color: #e07b00; color: #7a4a00; }
+.bilan-btn.sel-non { background: #fdecea; border-color: #d62b2b; color: #8a1a1a; }
+.bilan-obs textarea { height: 52px; resize: none; font-size: 12px; }
+
+/* ── FICHE ── */
+#screen-fiche { max-width: 1100px; }
+.fiche-wrap { background: white; border-radius: 14px; overflow: hidden; box-shadow: 0 4px 24px rgba(0,0,0,.1); }
+.fiche-banner { background: var(--slate); padding: 20px 28px; display: flex; align-items: flex-start; justify-content: space-between; gap: 20px; }
+.fiche-title { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 28px; color: white; text-transform: uppercase; line-height: 1; }
+.fiche-title span { color: var(--yellow); }
+.fiche-subtitle { font-size: 13px; color: rgba(255,255,255,.6); margin-top: 4px; }
+.fiche-chips { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 10px; }
+.fiche-chip { background: rgba(255,255,255,.1); color: rgba(255,255,255,.85); font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 4px; display: flex; align-items: center; gap: 5px; }
+
+.fiche-infos { display: grid; border-bottom: 2px solid var(--line); }
+.fi-cell { padding: 12px 18px; border-right: 1px solid var(--line); }
+.fi-cell:last-child { border-right: none; }
+.fi-lbl { font-size: 9px; font-weight: 700; text-transform: uppercase; letter-spacing: .08em; color: #aab; margin-bottom: 3px; }
+.fi-val { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 17px; color: var(--slate); }
+
+.fiche-cols { display: grid; border-bottom: 1px solid var(--line); }
+.fiche-col { border-right: 1px solid var(--line); display: flex; flex-direction: column; }
+.fiche-col:last-child { border-right: none; }
+.fiche-col-head { padding: 12px 16px; border-bottom: 1px solid var(--line); display: flex; align-items: center; gap: 10px; }
+.fcol-dot { width: 10px; height: 10px; border-radius: 50%; flex-shrink: 0; }
+.fcol-title { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 14px; color: var(--slate); }
+.fcol-sub { font-size: 10px; color: #8a9aaa; }
+.fcol-comp { font-size: 10px; font-style: italic; color: #5a7090; padding: 6px 16px 10px; border-bottom: 1px solid var(--line); background: #fafbfc; }
+.fiche-sit { padding: 12px 16px; border-bottom: 1px solid var(--line); }
+.fiche-sit:last-child { border-bottom: none; }
+.fiche-sit-num { width: 20px; height: 20px; border-radius: 5px; display: inline-flex; align-items: center; justify-content: center; font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 13px; color: white; margin-right: 6px; vertical-align: middle; flex-shrink: 0; }
+.fiche-sit-name { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 15px; color: var(--slate); display: inline; }
+.fiche-sit-obj { font-size: 11px; color: #5a7090; margin-top: 4px; line-height: 1.45; }
+.fiche-sit-crit { font-size: 10px; color: var(--green); font-weight: 700; margin-top: 4px; }
+.fiche-sit-mat { font-size: 10px; color: #8a9aaa; margin-top: 3px; }
+
+/* ── FICHE BILAN SECTION ── */
+.fiche-bilan-section { padding: 18px 24px; border-top: 2px solid var(--line); background: #fafbfc; }
+.fiche-bilan-title { font-family: 'Barlow Condensed', sans-serif; font-weight: 900; font-size: 16px; text-transform: uppercase; letter-spacing: .04em; color: var(--slate); margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+.fiche-bilan-cols { display: grid; gap: 16px; }
+.fiche-bilan-grp { background: white; border-radius: 8px; border: 1px solid var(--line); overflow: hidden; }
+.fiche-bilan-grp-head { padding: 8px 14px; display: flex; align-items: center; gap: 8px; }
+.fiche-bilan-grp-name { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 15px; color: var(--slate); }
+.fiche-bilan-grp-body { padding: 10px 14px; }
+.fiche-bilan-comp-row { display: grid; grid-template-columns: 1fr auto; gap: 10px; align-items: center; padding: 5px 0; border-bottom: 1px solid var(--line); font-size: 11px; }
+.fiche-bilan-comp-row:last-child { border-bottom: none; }
+.fiche-bilan-scale { display: flex; gap: 0; }
+.fbs-item { padding: 3px 8px; border: 1px solid #ddd; font-size: 10px; font-weight: 700; }
+.fbs-item:first-child { border-radius: 4px 0 0 4px; }
+.fbs-item:last-child { border-radius: 0 4px 4px 0; }
+.fbs-ok { background: #d4edda; color: #1a5c30; border-color: #a3d4b0; }
+.fbs-prog { background: #fff3cd; color: #7a4a00; border-color: #f0d080; }
+.fbs-non { background: #fdecea; color: #8a1a1a; border-color: #f5c0bc; }
+.fiche-bilan-obs { margin-top: 10px; }
+.fiche-bilan-obs-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: #8a9aaa; margin-bottom: 4px; }
+.fiche-bilan-obs-box { border: 1px solid var(--line); border-radius: 6px; min-height: 44px; padding: 6px 10px; font-size: 11px; color: #aab; font-style: italic; }
+
+.fiche-mat-bar { padding: 14px 20px; background: #f7f9fb; border-top: 2px solid var(--line); display: flex; align-items: flex-start; gap: 12px; flex-wrap: wrap; }
+.mat-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; color: #8a9aaa; flex: 0 0 100%; }
+.mat-chip { background: white; border: 1px solid var(--line); font-size: 11px; font-weight: 700; color: var(--ink); padding: 4px 10px; border-radius: 4px; }
+
+/* ── BUTTONS ── */
+.btn { padding: 11px 22px; border-radius: 9px; border: none; cursor: pointer; font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 15px; text-transform: uppercase; letter-spacing: .06em; transition: all .15s; display: inline-flex; align-items: center; gap: 8px; }
+.btn-primary { background: var(--blue); color: white; }
+.btn-primary:hover { background: var(--blue2); }
+.btn-outline { background: white; color: var(--blue); border: 2px solid var(--blue); }
+.btn-outline:hover { background: var(--blue); color: white; }
+.btn-sm { padding: 7px 14px; font-size: 12px; }
+.btn-danger { background: #fdecea; color: var(--red); border: 1px solid #f5c0bc; }
+.btn-danger:hover { background: var(--red); color: white; }
+.btn-print { background: var(--slate); color: white; }
+.btn-print:hover { background: #263545; }
+
+.toolbar { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-bottom: 16px; justify-content: space-between; }
+
+/* ── ALERTS ── */
+.alert { padding: 10px 14px; border-radius: 8px; font-size: 12px; font-weight: 700; display: flex; align-items: flex-start; gap: 8px; margin-bottom: 14px; }
+.alert-info { background: #e8f3ff; color: #1a4a8a; border-left: 3px solid var(--blue); }
+.alert-warn { background: #fff8e6; color: #7a5c00; border-left: 3px solid var(--yellow); }
+.alert-green { background: #e6f4ec; color: #1a4a2a; border-left: 3px solid var(--green); }
+
+/* ── PRINT ── */
+@media print {
+  header, .toolbar, .no-print { display: none !important; }
+  body { background: white; }
+  .screen { padding: 0; max-width: 100%; }
+  .fiche-wrap { box-shadow: none; border-radius: 0; }
+  .fiche-cols { page-break-inside: avoid; }
+  .fiche-bilan-obs-box { min-height: 60px; }
+}
+
+/* ── RESPONSIVE ── */
+@media (max-width: 640px) {
+  .stepper .step-label { display: none; }
+  .row2, .row3 { grid-template-columns: 1fr; }
+  .fiche-infos { grid-template-columns: 1fr 1fr !important; }
+  .fiche-cols { grid-template-columns: 1fr !important; }
+  .fiche-col { border-right: none; border-bottom: 2px solid var(--slate); }
+  .grp-row { grid-template-columns: 100px 1fr 65px 30px; gap: 6px; }
+  .filters-bar { flex-direction: column; }
+}
+.empty { text-align: center; padding: 32px 20px; color: #aab; }
+.empty-icon { font-size: 36px; margin-bottom: 10px; }
+.empty-text { font-family: 'Barlow Condensed', sans-serif; font-weight: 700; font-size: 16px; }
+
+/* ── SUIVI CYCLE ── */
+#screen-suivi { max-width: 1100px; }
+.cycle-header { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:10px; margin-bottom:16px; }
+.seance-history { display:flex; flex-direction:column; gap:10px; margin-bottom:20px; }
+.seance-card { background:white; border-radius:10px; border:1px solid var(--line); overflow:hidden; }
+.seance-card-head { padding:12px 18px; display:flex; align-items:center; gap:12px; cursor:pointer; user-select:none; }
+.seance-card-head:hover { background:#fafcff; }
+.seance-num { width:36px; height:36px; border-radius:8px; background:var(--slate); color:white; display:flex; align-items:center; justify-content:center; font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:18px; flex-shrink:0; }
+.seance-meta { flex:1; }
+.seance-meta-title { font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:16px; color:var(--slate); }
+.seance-meta-sub { font-size:11px; color:#7a8a99; margin-top:2px; }
+.seance-expand { font-size:11px; color:#8a9aaa; }
+.seance-card-body { padding:14px 18px; border-top:1px solid var(--line); background:#fafbfc; display:none; }
+.seance-card-body.open { display:block; }
+.prog-table { width:100%; border-collapse:collapse; font-size:12px; margin-top:8px; }
+.prog-table th { text-align:left; padding:6px 10px; background:var(--slate); color:white; font-family:'Barlow Condensed',sans-serif; font-size:12px; font-weight:700; }
+.prog-table td { padding:6px 10px; border-bottom:1px solid var(--line); vertical-align:middle; }
+.prog-table tr:last-child td { border-bottom:none; }
+.prog-dot { display:inline-flex; align-items:center; gap:4px; padding:2px 7px; border-radius:3px; font-size:10px; font-weight:700; }
+.prog-ok  { background:#d4edda; color:#1a5c30; }
+.prog-en  { background:#fff3cd; color:#7a4a00; }
+.prog-non { background:#fdecea; color:#8a1a1a; }
+.prog-nd  { background:#f0f0f0; color:#888; }
+
+/* progression summary par compétence sur tout le cycle */
+.cycle-summary { background:white; border-radius:10px; border:1px solid var(--line); overflow:hidden; margin-bottom:16px; }
+.cycle-summary-head { padding:14px 18px; border-bottom:1px solid var(--line); display:flex; align-items:center; gap:10px; }
+.cycle-comp-row { display:grid; grid-template-columns:200px 1fr; gap:0; border-bottom:1px solid var(--line); min-height:36px; }
+.cycle-comp-row:last-child { border-bottom:none; }
+.cycle-comp-label { padding:8px 14px; font-size:12px; font-weight:700; color:var(--slate); border-right:1px solid var(--line); display:flex; align-items:center; }
+.cycle-comp-dots { padding:8px 14px; display:flex; gap:6px; align-items:center; flex-wrap:wrap; }
+.cycle-dot { width:22px; height:22px; border-radius:50%; display:flex; align-items:center; justify-content:center; font-size:9px; font-weight:700; color:white; cursor:default; flex-shrink:0; }
+.cycle-dot.ok  { background:#1a8a4a; }
+.cycle-dot.en  { background:#e07b00; }
+.cycle-dot.non { background:#d62b2b; }
+.cycle-dot.nd  { background:#c0cdd8; }
+
+/* ── QUESTIONNAIRE ÉLÈVE ── */
+#screen-questionnaire { max-width: 800px; }
+.qst-controls { display:flex; gap:10px; align-items:center; flex-wrap:wrap; margin-bottom:16px; }
+.qst-preview { background:white; border-radius:12px; border:1px solid var(--line); overflow:hidden; }
+.qst-header { background:var(--slate); padding:16px 20px; color:white; display:flex; justify-content:space-between; align-items:flex-start; }
+.qst-title { font-family:'Barlow Condensed',sans-serif; font-weight:900; font-size:22px; text-transform:uppercase; }
+.qst-subtitle { font-size:11px; color:rgba(255,255,255,.6); margin-top:3px; }
+.qst-prenom { border:none; border-bottom:2px solid rgba(255,255,255,.4); background:transparent; color:white; font-size:14px; font-family:'Lato',sans-serif; padding:4px 0; width:200px; }
+.qst-prenom::placeholder { color:rgba(255,255,255,.4); }
+.qst-famille { padding:0; }
+.qst-famille-head { padding:10px 18px; font-family:'Barlow Condensed',sans-serif; font-weight:700; font-size:14px; color:white; text-transform:uppercase; letter-spacing:.04em; }
+.qst-item { display:grid; grid-template-columns:1fr 60px 60px 70px; padding:8px 18px; border-bottom:1px solid var(--line); font-size:13px; align-items:center; gap:8px; }
+.qst-item:last-child { border-bottom:none; }
+.qst-item-label { line-height:1.35; }
+.qst-check-cell { text-align:center; font-size:10px; font-weight:700; color:#8a9aaa; }
+.qst-box { width:24px; height:24px; border:2px solid var(--line); border-radius:4px; margin:0 auto; }
+.qst-col-header { display:grid; grid-template-columns:1fr 60px 60px 70px; padding:6px 18px; background:#f7f9fb; border-bottom:2px solid var(--line); gap:8px; }
+.qst-col-label { font-size:9px; font-weight:700; text-transform:uppercase; letter-spacing:.08em; color:#8a9aaa; text-align:center; }
+.qst-col-label:first-child { text-align:left; }
+
+/* ── TOAST ── */
+.toast { position:fixed; bottom:24px; left:50%; transform:translateX(-50%) translateY(80px); background:var(--slate); color:white; padding:10px 20px; border-radius:8px; font-size:13px; font-weight:700; z-index:999; transition:transform .3s ease; pointer-events:none; white-space:nowrap; }
+.toast.show { transform:translateX(-50%) translateY(0); }
+
+/* ── IMPORT ZONE ── */
+.import-zone { border:2px dashed var(--line); border-radius:10px; padding:24px; text-align:center; cursor:pointer; transition:all .15s; background:white; }
+.import-zone:hover, .import-zone.drag { border-color:var(--blue); background:#f0f6ff; }
+.import-zone p { font-size:13px; color:#8a9aaa; margin-top:6px; }
+
+/* ── MODE IMPRESSION FICHE ── */
+@media print {
+  header, .toolbar, .no-print { display:none !important; }
+  body { background:white; }
+  .screen { padding:0; max-width:100%; }
+  .fiche-wrap { box-shadow:none; border-radius:0; }
+  /* Par défaut : on imprime la fiche, on masque le reste */
+  #screen-1, #screen-2, #screen-suivi, #screen-questionnaire { display:none !important; }
+  #screen-fiche { display:block !important; }
+}
+
+/* ── MODE IMPRESSION QUESTIONNAIRE ── */
+/* On ajoute la classe .print-qst sur <body> avant d'appeler window.print() */
+body.print-qst #screen-fiche    { display:none !important; }
+body.print-qst #screen-suivi    { display:none !important; }
+body.print-qst #screen-1        { display:none !important; }
+body.print-qst #screen-2        { display:none !important; }
+
+@media print {
+  body.print-qst #screen-questionnaire {
+    display:block !important;
+    padding:0; max-width:100%;
+  }
+  body.print-qst #screen-fiche { display:none !important; }
+  body.print-qst .qst-controls { display:none !important; }
+  body.print-qst .qst-preview  { box-shadow:none; border-radius:0; border:none; }
+}
+
+/* ── AUTOSAVE INDICATOR ── */
+.autosave-bar {
+  position:fixed; bottom:0; left:0; right:0;
+  background:rgba(28,43,58,.92); color:rgba(255,255,255,.7);
+  font-size:11px; font-weight:700; padding:5px 16px;
+  display:flex; align-items:center; justify-content:space-between;
+  z-index:80; backdrop-filter:blur(4px);
+  transition:opacity .3s;
+}
+.autosave-bar.hidden { opacity:0; pointer-events:none; }
+.autosave-dot { width:7px; height:7px; border-radius:50%; background:#1a8a4a; margin-right:6px; display:inline-block; }
+.autosave-dot.saving { background:var(--yellow); animation:pulse .6s infinite; }
+@keyframes pulse { 0%,100%{opacity:1} 50%{opacity:.3} }
+
+/* ── BANNIÈRE REPRISE SESSION ── */
+.session-banner {
+  background:#fff8e6; border:2px solid var(--yellow);
+  border-radius:10px; padding:14px 18px;
+  display:flex; align-items:center; justify-content:space-between;
+  gap:12px; flex-wrap:wrap; margin-bottom:16px;
+}
+.session-banner-text { font-size:13px; color:#5a4a00; flex:1; }
+.session-banner-text strong { display:block; font-size:14px; margin-bottom:2px; }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="logo">
+    <div class="logo-dot">🚲</div>
+    <div class="logo-text">Savoir Rouler <em>à Vélo</em><br><span style="font-size:11px;font-weight:400;color:rgba(255,255,255,.5);letter-spacing:.12em">CONSTRUCTEUR DE SÉANCE</span></div>
+    <span class="logo-badge">v7</span>
+  </div>
+  <div class="stepper">
+    <button class="step-btn active" id="sbtn-1" onclick="goStep(1)"><span class="sn">1</span><span class="step-label">Classe</span></button>
+    <button class="step-btn" id="sbtn-2" onclick="goStep(2)"><span class="sn">2</span><span class="step-label">Situations</span></button>
+    <button class="step-btn" id="sbtn-3" onclick="goStep(3)"><span class="sn">3</span><span class="step-label">Fiche</span></button>
+    <button class="step-btn" id="sbtn-4" onclick="goStep(4)"><span class="sn">4</span><span class="step-label">Suivi</span></button>
+    <button class="step-btn" id="sbtn-5" onclick="goStep(5)"><span class="sn">5</span><span class="step-label">Élèves</span></button>
+  </div>
+</header>
+
+<!-- ══════════ ÉTAPE 1 : PHOTO DE CLASSE ══════════ -->
+<div class="screen active" id="screen-1">
+  <div class="sh bc">Étape 1 — Photo de classe</div>
+  <div class="sub">Décrivez votre classe et constituez vos groupes. En Bloc 3, la classe sort entière — pas de groupes séparés.</div>
+
+  <div class="card">
+    <div class="card-head">
+      <div class="card-head-icon" style="background:#eef3fb">📋</div>
+      <span class="card-title">Informations de la séquence</span>
+    </div>
+    <div class="card-body">
+      <div class="row2">
+        <div class="field">
+          <label class="label">École / Établissement</label>
+          <input type="text" id="f-ecole" placeholder="Ex : École Jean Moulin" />
+        </div>
+        <div class="field">
+          <label class="label">Classe</label>
+          <input type="text" id="f-classe" placeholder="Ex : CE2 – 24 élèves" />
+        </div>
+      </div>
+      <div class="row3">
+        <div class="field">
+          <label class="label">Effectif total</label>
+          <input type="number" id="f-effectif" value="24" min="1" max="60" />
+        </div>
+        <div class="field">
+          <label class="label">N° de séance</label>
+          <input type="number" id="f-seance-num" value="1" min="1" max="20" />
+        </div>
+        <div class="field">
+          <label class="label">Sur (total séances)</label>
+          <input type="number" id="f-seance-total" value="10" min="1" max="30" />
+        </div>
+      </div>
+      <div class="field">
+        <label class="label">Lieu</label>
+        <input type="text" id="f-lieu" placeholder="Ex : Cour de récréation, espace cyclable Naudin…" />
+      </div>
+    </div>
+  </div>
+
+  <!-- Groupes -->
+  <div class="card">
+    <div class="card-head">
+      <div class="card-head-icon" style="background:#eef3fb">👥</div>
+      <span class="card-title">Constitution des groupes</span>
+      <button class="btn btn-outline btn-sm no-print" style="margin-left:auto" onclick="addGroupe()">+ Ajouter un groupe</button>
+    </div>
+    <div class="card-body" style="padding-bottom:8px">
+      <div class="alert alert-info">
+        Commencez par l'évaluation diagnostique (séance 1) pour observer le niveau de chaque élève. En <strong>Bloc 3</strong>, tous les élèves participent ensemble — un seul groupe sera généré.
+      </div>
+      <div id="groupes-list"></div>
+      <div id="effectif-check" style="font-size:12px;margin-top:10px;font-weight:700"></div>
+    </div>
+  </div>
+
+  <div style="display:flex;justify-content:flex-end">
+    <button class="btn btn-primary" onclick="goStep(2)">Choisir les situations →</button>
+  </div>
+</div>
+
+<!-- ══════════ ÉTAPE 2 : SITUATIONS ══════════ -->
+<div class="screen" id="screen-2">
+  <div class="sh bc">Étape 2 — Situations pédagogiques</div>
+  <div class="sub">Pour chaque groupe, filtrez les situations puis sélectionnez vos activités. Cochez les compétences visées et évaluez les progrès après la séance.</div>
+  <div id="groupes-sit-sections"></div>
+  <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px">
+    <button class="btn btn-outline" onclick="goStep(1)">← Modifier la classe</button>
+    <button class="btn btn-primary" onclick="generateFiche()">Générer la fiche de séance →</button>
+  </div>
+</div>
+
+<!-- ══════════ ÉTAPE 4 : SUIVI DU CYCLE ══════════ -->
+<div class="screen" id="screen-suivi">
+  <div class="cycle-header">
+    <div>
+      <div class="sh bc">Étape 4 — Suivi du cycle</div>
+      <div class="sub" style="margin-bottom:0">Remplissez le bilan, puis sauvegardez. Rechargez votre fichier à chaque nouvelle séance.</div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+      <button class="btn btn-outline btn-sm" id="btn-charger-cycle" onclick="document.getElementById('file-import-input').click()">
+        📂 Charger un cycle existant
+      </button>
+      <input type="file" id="file-import-input" accept=".json" style="display:none" onchange="importCycle(this)">
+      <button class="btn btn-primary btn-sm" onclick="exporterCycle()">💾 Sauvegarder &amp; exporter (.json)</button>
+      <button class="btn btn-sm" onclick="confirmerReinit()" style="background:#fdecea;color:var(--red);border:1px solid #f5c0bc">🗑 Réinitialiser</button>
+    </div>
+  </div>
+
+  <!-- Flux de travail -->
+  <div class="alert alert-info no-print" style="margin-bottom:16px">
+    <div>
+      <strong>Flux de travail :</strong>
+      <span style="font-weight:400"> (1) Complétez le bilan ci-dessous après la séance → (2) Cliquez "Sauvegarder &amp; exporter" → un fichier .json se télécharge → (3) À la prochaine séance, rechargez ce fichier avec "Charger un cycle existant" pour retrouver l'historique complet.</span>
+    </div>
+  </div>
+
+  <!-- Zone drag-drop import -->
+  <div id="import-dropzone" class="import-zone" style="margin-bottom:16px;display:none"
+    ondragover="event.preventDefault();this.classList.add('drag')"
+    ondragleave="this.classList.remove('drag')"
+    ondrop="handleDrop(event)">
+    <div style="font-size:28px">📂</div>
+    <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:16px;color:var(--slate);margin-top:6px">Glissez votre fichier .json ici</div>
+    <p>ou cliquez sur "Charger un cycle existant" ci-dessus</p>
+  </div>
+
+  <!-- BILAN DE LA SÉANCE EN COURS -->
+  <div class="card" style="margin-bottom:16px">
+    <div class="card-head">
+      <div class="card-head-icon" style="background:#fff3cd">📝</div>
+      <span class="card-title">Bilan de la séance en cours</span>
+      <span style="margin-left:auto;font-size:11px;color:#e07b00;font-weight:700">À remplir après la séance · avant de sauvegarder</span>
+    </div>
+    <div class="card-body" style="padding:0">
+      <div id="bilan-rapide-list"></div>
+    </div>
+  </div>
+
+  <!-- Synthèse progression -->
+  <div id="cycle-summary-wrap"></div>
+
+  <!-- Historique séances -->
+  <div class="card">
+    <div class="card-head">
+      <div class="card-head-icon" style="background:#eef3fb">📅</div>
+      <span class="card-title">Historique des séances sauvegardées</span>
+      <span id="cycle-count" style="margin-left:auto;font-size:12px;color:#8a9aaa"></span>
+    </div>
+    <div class="card-body" style="padding:0">
+      <div id="seance-history-list">
+        <div class="empty" style="padding:24px">
+          <div class="empty-icon">📭</div>
+          <div class="empty-text">Aucune séance sauvegardée</div>
+          <p style="font-size:12px;color:#aab;margin-top:6px">Remplissez le bilan ci-dessus et cliquez "Sauvegarder &amp; exporter"</p>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div style="display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px">
+    <button class="btn btn-outline" onclick="goStep(3)">← Retour à la fiche</button>
+    <button class="btn btn-primary" onclick="goStep(5)">Questionnaire élèves →</button>
+  </div>
+</div>
+
+<!-- ══════════ ÉTAPE 5 : QUESTIONNAIRE ÉLÈVE ══════════ -->
+<div class="screen" id="screen-questionnaire">
+  <div class="sh bc">Étape 5 — Questionnaire d'auto-évaluation</div>
+  <div class="sub">Fiche élève à imprimer, filtrée sur les compétences travaillées dans ce cycle.</div>
+
+  <div class="qst-controls no-print">
+    <div style="font-size:12px;color:#7a8a99;flex:1">Les items en grisé n'ont pas encore été travaillés. Décochez-les pour les masquer à l'impression.</div>
+    <label style="display:flex;align-items:center;gap:6px;font-size:13px;cursor:pointer">
+      <input type="checkbox" id="qst-hide-unused" onchange="renderQuestionnaire()"> Masquer les items non travaillés
+    </label>
+    <button class="btn btn-print btn-sm" onclick="printQuestionnaire()">🖨 Imprimer les fiches élèves</button>
+  </div>
+
+  <div class="qst-preview" id="qst-output"></div>
+
+  <div style="margin-top:16px;display:flex;justify-content:space-between;flex-wrap:wrap;gap:10px">
+    <button class="btn btn-outline" onclick="goStep(4)">← Retour au suivi</button>
+  </div>
+</div>
+
+<!-- TOAST -->
+<div class="toast" id="toast"></div>
+
+<!-- MODAL CONFIRMATION RÉINITIALISATION -->
+<div id="reinit-modal" style="display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:center;justify-content:center">
+  <div style="background:white;border-radius:14px;padding:28px;max-width:400px;width:90%;box-shadow:0 8px 40px rgba(0,0,0,.2)">
+    <div style="font-size:28px;text-align:center;margin-bottom:12px">⚠️</div>
+    <div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:20px;color:var(--slate);text-align:center;margin-bottom:8px">Réinitialiser l'outil ?</div>
+    <p style="font-size:13px;color:#5a7090;text-align:center;margin-bottom:6px">Cette action supprime :</p>
+    <ul style="font-size:12px;color:#5a7090;margin:0 0 16px 20px;line-height:1.8">
+      <li>La session en cours (groupes, situations, bilans)</li>
+      <li>L'historique du cycle en mémoire</li>
+      <li>La sauvegarde automatique du navigateur</li>
+    </ul>
+    <p style="font-size:12px;font-weight:700;color:var(--red);text-align:center;margin-bottom:20px">⚠ Exportez d'abord votre cycle (.json) si vous souhaitez le conserver.</p>
+    <div style="display:flex;gap:10px;justify-content:center">
+      <button class="btn btn-outline" onclick="fermerReinit()">Annuler</button>
+      <button class="btn" style="background:var(--red);color:white" onclick="reinitialiser()">Oui, tout effacer</button>
+    </div>
+  </div>
+</div>
+
+<!-- BANNIÈRE REPRISE SESSION -->
+<div class="session-banner" id="session-banner" style="display:none;margin:12px 20px 0">
+  <div class="session-banner-text">
+    <strong>💾 Session précédente trouvée</strong>
+    Une sauvegarde automatique existe — vous pouvez reprendre exactement là où vous en étiez.
+  </div>
+  <div style="display:flex;gap:8px;flex-shrink:0">
+    <button class="btn btn-primary btn-sm" onclick="restaurerSession()">↩ Reprendre la session</button>
+    <button class="btn btn-outline btn-sm" onclick="ignorerSession()">Ignorer</button>
+  </div>
+</div>
+
+<!-- BARRE AUTOSAVE -->
+<div class="autosave-bar hidden" id="autosave-bar">
+  <span><span class="autosave-dot" id="autosave-dot"></span><span id="autosave-msg">Sauvegarde automatique active</span></span>
+  <span style="font-size:10px;opacity:.6">Les données sont conservées si la page se recharge accidentellement</span>
+</div>
+<div class="screen" id="screen-fiche">
+  <div class="toolbar no-print">
+    <div>
+      <div class="sh bc" style="font-size:18px;margin-bottom:0">Fiche de séance</div>
+      <div style="font-size:12px;color:#8a9aaa">Imprimez cette fiche · Remplissez le bilan après la séance en étape 4</div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <button class="btn btn-outline btn-sm" onclick="goStep(2)">← Modifier</button>
+      <button class="btn btn-outline btn-sm" onclick="goStep(4)" style="border-color:var(--orange);color:var(--orange)">📝 Bilan &amp; Suivi</button>
+      <button class="btn btn-print btn-sm" onclick="window.print()">🖨 Imprimer / PDF</button>
+    </div>
+  </div>
+  <div class="fiche-wrap" id="fiche-output"></div>
+</div>
+
+<script>
+/* ════════════════════════════════════════════════════
+   RÉFÉRENTIEL SRAV — 4 BLOCS + NIVEAUX 1/2/3
+   ════════════════════════════════════════════════════ */
+const BLOCS_META = {
+  b0: { label:"Bloc 0 – S'équilibrer",      shortLabel:"Bloc 0",  color:"#7b5ea7", bg:"#f3effe", icon:"🧸", contexte:"Maternelle / Draisienne" },
+  b1: { label:"Bloc 1 – Savoir Pédaler",    shortLabel:"Bloc 1",  color:"#d62b2b", bg:"#fdecea", icon:"🚲", contexte:"Milieu aménagé — cour d'école" },
+  b2: { label:"Bloc 2 – Savoir Circuler",   shortLabel:"Bloc 2",  color:"#e07b00", bg:"#fef3e2", icon:"🔁", contexte:"Milieu protégé — circuit balisé" },
+  b3: { label:"Bloc 3 – Savoir Rouler",     shortLabel:"Bloc 3",  color:"#1a8a4a", bg:"#e6f4ec", icon:"🛣️",  contexte:"Voie publique — toute la classe", classeEntiere:true },
+};
+
+/* Compétences par bloc, chacune associée à un niveau 1/2/3
+   niv = niveau où elle est principalement visée (peut être travaillée dans plusieurs blocs)
+   spiral = [blocs dans lesquels elle réapparaît] */
+const COMPETENCES = {
+  b0: {
+    comps: [
+      { id:"b0-eq", label:"Équipement (casque)", niv:1, detail:"Mettre et régler son casque" },
+      { id:"b0-eq2", label:"Nommer les éléments du vélo", niv:1, detail:"Nommer : cadre, guidon, freins, pédales, selle, roues" },
+      { id:"b0-mv", label:"S'équilibrer en mouvement", niv:1, detail:"Pousser, glisser, lever les pieds" },
+    ]
+  },
+  b1: {
+    comps: [
+      { id:"b1-eq",  label:"Équipement & vérification du vélo",   niv:1, spiral:["b2","b3"], detail:"Mettre le casque, nommer les éléments, vérifier freins et pneus" },
+      { id:"b1-fd",  label:"Monter/descendre · démarrer",          niv:1, detail:"Monter et descendre à l'arrêt · Démarrer pied sur pédale haute" },
+      { id:"b1-ld",  label:"Ligne droite & slalom simple",         niv:1, detail:"Conduire en ligne droite · Slalom simple sans poser le pied" },
+      { id:"b1-fr",  label:"Freiner dans une zone délimitée",      niv:1, spiral:["b2","b3"], detail:"Ralentir, freiner et s'arrêter dans une zone délimitée" },
+      { id:"b1-pan", label:"Panneaux signalétiques (niveau 1)",    niv:1, spiral:["b2","b3"], detail:"Stop, sens interdit, vélos interdits, piste cyclable, cédez le passage, sens unique" },
+      { id:"b1-ap",  label:"Relâcher un appui (main ou pied)",     niv:2, detail:"Rouler en enlevant une main ou un pied de l'appui" },
+      { id:"b1-ci",  label:"Couloir étroit (30 cm) + prise d'info",niv:2, detail:"Rouler dans un couloir 30 cm / 10 m · Prendre des informations en roulant" },
+      { id:"b1-vi",  label:"Virage à 90° & franchissement",        niv:2, detail:"Effectuer un virage à 90° · Franchir un petit obstacle" },
+      { id:"b1-vt",  label:"Changement de vitesses",               niv:3, detail:"Changer de vitesse en roulant selon le relief ou un signal" },
+    ]
+  },
+  b2: {
+    comps: [
+      { id:"b2-eq",  label:"Sécurité vélo (éclairage, catadioptres, sonnette)", niv:2, spiral:["b3"], detail:"Identifier les éléments de sécurité · Vérifier le bon fonctionnement" },
+      { id:"b2-pan", label:"Panneaux signalétiques (niveau 2)",    niv:2, spiral:["b3"], detail:"Feu tricolore, sens giratoire, priorité à droite, endroit fréquenté par des enfants" },
+      { id:"b2-es",  label:"Identifier les espaces cyclables",     niv:2, spiral:["b3"], detail:"Reconnaître piste cyclable, bande cyclable, chaussée" },
+      { id:"b2-cr",  label:"Code de la route en milieu protégé",   niv:2, spiral:["b3"], detail:"Rouler en respectant le code de la route sur circuit balisé" },
+      { id:"b2-au",  label:"Tenir compte des autres usagers",      niv:2, spiral:["b3"], detail:"Adapter son déplacement aux autres élèves et piétons" },
+      { id:"b2-co",  label:"Communiquer avec les autres cyclistes",niv:3, spiral:["b3"], detail:"Faire connaître sa direction · Identifier les changements de direction des autres" },
+      { id:"b2-gi",  label:"Giratoire en milieu protégé",          niv:3, detail:"S'insérer et circuler sur un rond-point tracé au sol" },
+    ]
+  },
+  b3: {
+    comps: [
+      { id:"b3-eq",  label:"Vérification complète du vélo",        niv:3, detail:"Potence, serrage des roues, selle, freins — vérification avant la sortie" },
+      { id:"b3-pan", label:"Panneaux signalétiques (niveau 3)",    niv:3, detail:"Tous les panneaux : stop, giratoire, zone piétonne, priorité à droite" },
+      { id:"b3-es",  label:"Emprunter les espaces cyclables réels",niv:3, detail:"Piste cyclable, bande cyclable · Ne pas rouler sur le trottoir" },
+      { id:"b3-cr",  label:"Code de la route en situation réelle", niv:3, detail:"Circuler en respectant le code de la route sur voie publique" },
+      { id:"b3-us",  label:"Tenir compte des usagers réels",       niv:3, detail:"Voitures, piétons, autres cyclistes — s'adapter en temps réel" },
+      { id:"b3-dr",  label:"Rouler à droite & en file",            niv:3, detail:"Rouler à droite · Rouler en file indienne sur la voie publique" },
+      { id:"b3-gi",  label:"Giratoires & intersections réels",     niv:3, detail:"Prendre sa place sur la chaussée aux giratoires et intersections" },
+    ]
+  }
+};
+
+/* ════════════════════════════════════════════════════
+   BASE DE DONNÉES — SITUATIONS PÉDAGOGIQUES
+   ════════════════════════════════════════════════════ */
+const SITUATIONS = [
+  // ── BLOC 0 ──────────────────────────────────────────────
+  { id:"s00a", bloc:"b0", niv:1, comps:["b0-mv"],
+    titre:"Pousse-trottinette libre",
+    obj:"Explorer le déplacement sur deux roues en faisant glisser.",
+    desc:"Les élèves poussent leur draisienne librement dans l'espace, soulevant les pieds le plus longtemps possible.",
+    crit:"Glisser sans toucher le sol pendant au moins 2 secondes.",
+    mat:"Draisiennes, espace plat sécurisé", duree:"10 min" },
+
+  { id:"s00b", bloc:"b0", niv:1, comps:["b0-mv"],
+    titre:"Le chat et la souris (draisienne)",
+    obj:"S'équilibrer en situation de jeu collectif dynamique.",
+    desc:"Un élève \"chat\" (à pied) tente de toucher les \"souris\" sur draisienne. Les souris glissent sans poser les pieds.",
+    crit:"Maintenir l'équilibre en changeant de direction.", mat:"Draisiennes, espace délimité", duree:"12 min" },
+
+  // ── BLOC 1 — Niveau 1 ────────────────────────────────────
+  { id:"s01", bloc:"b1", niv:1, comps:["b1-fd"],
+    titre:"L'escargot",
+    obj:"Maîtriser l'équilibre à très faible vitesse, sans poser le pied.",
+    desc:"Course de lenteur : le dernier arrivé entre deux plots (10 m) sans poser le pied gagne.",
+    crit:"Arriver dernier sans poser le pied au sol.", mat:"Plots, espace plat 10 m", duree:"10 min" },
+
+  { id:"s02", bloc:"b1", niv:1, comps:["b1-fd"],
+    titre:"Démarrage arrêté – pédale haute",
+    obj:"Démarrer efficacement avec le pied sur la pédale haute.",
+    desc:"8 démarrages consécutifs avec un pied sur la pédale haute pour une poussée prolongée.",
+    crit:"8 démarrages sur 10 sans erreur de pied.", mat:"Vélos, ligne de départ", duree:"10 min" },
+
+  { id:"s03", bloc:"b1", niv:1, comps:["b1-ld"],
+    titre:"L'entonnoir",
+    obj:"Maîtriser sa trajectoire dans un couloir progressivement plus étroit.",
+    desc:"Couloir qui se rétrécit de 2 m à 50 cm sur 15 m. Traverser sans toucher les limites.",
+    crit:"8 passages sur 10 sans toucher les bords.", mat:"Plots ou ruban, 15 m", duree:"12 min" },
+
+  { id:"s04", bloc:"b1", niv:1, comps:["b1-ld"],
+    titre:"Slalom simple",
+    obj:"Conduire sur un parcours sinueux sans perdre l'équilibre.",
+    desc:"Contourner 5 plots alignés sur un parcours sinueux sans poser le pied au sol.",
+    crit:"Terminer le slalom sans renverser de plot ni poser le pied.", mat:"5 cônes, espace 10 m", duree:"10 min" },
+
+  { id:"s05", bloc:"b1", niv:1, comps:["b1-fr"],
+    titre:"Le pose-pied",
+    obj:"Contrôler le freinage en posant alternativement le pied choisi.",
+    desc:"S'arrêter dans un couloir en posant alternativement le pied droit puis gauche selon consigne.",
+    crit:"S'arrêter sur le pied choisi sans déséquilibre.", mat:"Plots, couloir 5 m", duree:"10 min" },
+
+  { id:"s06", bloc:"b1", niv:1, comps:["b1-fr"],
+    titre:"1-2-3 Soleil",
+    obj:"Immobilisation immédiate au signal — contrôle global du freinage.",
+    desc:"Les élèves avancent librement ; au signal « Soleil ! », arrêt complet sans poser le pied.",
+    crit:"Arrêt complet sans mouvement résiduel au signal.", mat:"Espace ouvert, sifflet", duree:"8 min" },
+
+  { id:"s06b", bloc:"b1", niv:1, comps:["b1-pan"],
+    titre:"Jacques a dit (panneaux)",
+    obj:"Identifier et réagir aux principaux panneaux de signalisation.",
+    desc:"Un élève tient un panneau (stop, cédez le passage…). L'enseignant dit « Jacques a dit [panneau] » — les cyclistes appliquent la règle.",
+    crit:"Réagir correctement à 8 panneaux sur 10.", mat:"Panneaux imprimés ou plastifiés, espace ouvert", duree:"10 min" },
+
+  // ── BLOC 1 — Niveau 2 ────────────────────────────────────
+  { id:"s07", bloc:"b1", niv:2, comps:["b1-ap","b1-ci"],
+    titre:"Lâcher le guidon",
+    obj:"Relâcher une main pour signaler un changement de direction.",
+    desc:"Sur un parcours balisé, lâcher une main pour tendre le bras du côté souhaité à chaque virage.",
+    crit:"Maintenir l'équilibre et la trajectoire pendant tout le signal.", mat:"Parcours balisé 15 m", duree:"10 min" },
+
+  { id:"s08", bloc:"b1", niv:2, comps:["b1-ci"],
+    titre:"Bande étroite (30 cm)",
+    obj:"Rouler dans un espace très contraint sans en sortir.",
+    desc:"Rouler sur une bande de 30 cm de large sur 10 m sans toucher les bords.",
+    crit:"Traverser sans toucher les bords ni descendre.", mat:"Madrier ou ruban 30 cm × 10 m", duree:"10 min" },
+
+  { id:"s09", bloc:"b1", niv:2, comps:["b1-ci"],
+    titre:"Prise d'information en roulant",
+    obj:"Identifier des signaux tout en maintenant une trajectoire rectiligne.",
+    desc:"Rouler dans un couloir droit en tournant la tête pour identifier des signaux ou objets placés sur les côtés.",
+    crit:"Reconnaître 8 signaux sur 10 sans dévier.", mat:"Couloir 15 m, cartes colorées", duree:"12 min" },
+
+  { id:"s10", bloc:"b1", niv:2, comps:["b1-vi"],
+    titre:"Virage à 90°",
+    obj:"Effectuer un virage serré en maintenant l'équilibre.",
+    desc:"Parcours en L : prendre un virage à 90° en maintenant le regard loin et la pédale intérieure en haut.",
+    crit:"Réussir 8 virages sur 10 sans poser le pied.", mat:"Plots, espace 10×10 m", duree:"12 min" },
+
+  { id:"s11", bloc:"b1", niv:2, comps:["b1-vi"],
+    titre:"Franchissement d'obstacle",
+    obj:"Passer un obstacle (bâton ou bord) sans perdre l'équilibre.",
+    desc:"Franchir un bâton posé au sol en soulevant légèrement le guidon, puis les deux roues progressivement.",
+    crit:"Franchir sans arrêter les pédales ni poser le pied.", mat:"Bâtons, planches légères", duree:"10 min" },
+
+  // ── BLOC 1 — Niveau 3 ────────────────────────────────────
+  { id:"s12", bloc:"b1", niv:3, comps:["b1-fr"],
+    titre:"Jeu de la latte – freinage précis",
+    obj:"Freiner précisément pour que seule la première barre tombe.",
+    desc:"Accélérer puis freiner pour toucher la première barre sans atteindre la seconde.",
+    crit:"8 essais sur 10 : seule la première barre touchée.", mat:"2 barres souples, plots", duree:"10 min" },
+
+  { id:"s13", bloc:"b1", niv:3, comps:["b1-vt"],
+    titre:"Changement de vitesses",
+    obj:"Adapter le braquet au relief ou à un signal sonore en roulant.",
+    desc:"Parcours avec montées simulées : changer de vitesse à chaque changement de relief en maintenant un pédalage régulier.",
+    crit:"Cadence de pédalage régulière maintenue pendant le changement.", mat:"Vélos avec dérailleur, parcours avec relief", duree:"15 min" },
+
+  // ── BLOC 2 — Niveau 2 ────────────────────────────────────
+  { id:"s14", bloc:"b2", niv:2, comps:["b2-es","b2-cr"],
+    titre:"La grande circulation",
+    obj:"Rouler en flux continu en respectant les espaces et les règles.",
+    desc:"Tous les élèves circulent dans un espace balisé avec panneaux, passages piétons, stop. Flux continu pendant 5 min.",
+    crit:"Zéro infraction majeure (stop non respecté, mauvaise trajectoire).", mat:"Espace balisé, panneaux, craie", duree:"15 min" },
+
+  { id:"s15", bloc:"b2", niv:2, comps:["b2-cr"],
+    titre:"Arrêt de précision",
+    obj:"S'arrêter équilibré dans une zone très étroite après accélération.",
+    desc:"Zone de freinage = 2,5 × longueur du vélo. Prendre de la vitesse puis freiner pour s'immobiliser dans la zone.",
+    crit:"8 arrêts sur 10 dans la zone sans poser le pied hors zone.", mat:"Ruban ou plots, espace 20 m", duree:"12 min" },
+
+  { id:"s15b", bloc:"b2", niv:2, comps:["b2-au"],
+    titre:"Regard en arrière (sans dévier)",
+    obj:"Tourner la tête en arrière pour observer sans dévier de trajectoire.",
+    desc:"Rouler en ligne droite, tourner la tête à gauche au signal pour identifier le nombre de doigts de l'enseignant.",
+    crit:"8 réponses correctes sur 10 sans dépasser la ligne.", mat:"Couloir 20 m, sifflet", duree:"10 min" },
+
+  // ── BLOC 2 — Niveau 3 ────────────────────────────────────
+  { id:"s16", bloc:"b2", niv:3, comps:["b2-co"],
+    titre:"Changement de direction signalé",
+    obj:"Signaler ses changements de direction en lâchant le guidon.",
+    desc:"Sur un parcours avec virages, lâcher une main et tendre le bras avant chaque virage.",
+    crit:"8 changements signalés correctement en moins de 5 min.", mat:"Parcours balisé 20 m", duree:"12 min" },
+
+  { id:"s17", bloc:"b2", niv:3, comps:["b2-co","b2-au"],
+    titre:"Communication en file indienne",
+    obj:"Transmettre des informations en file (obstacles, arrêts).",
+    desc:"File de 4-6 élèves. L'enseignant communique un obstacle au 1er — l'info se propage jusqu'au dernier par gestes.",
+    crit:"Transmission correcte et fluide jusqu'au dernier.", mat:"Plots obstacles, espace 30 m", duree:"15 min" },
+
+  { id:"s18", bloc:"b2", niv:3, comps:["b2-cr","b2-co","b2-gi"],
+    titre:"Le giratoire",
+    obj:"S'insérer et circuler sur un rond-point en signalant sa sortie.",
+    desc:"Rond-point tracé au sol (D = 6 m). S'insérer, tourner 1-2 fois, sortir en signalant de la main gauche.",
+    crit:"Manœuvre complète sans quitter le tracé ni perdre l'équilibre.", mat:"Craie ou ruban, plots, espace 8×8 m", duree:"15 min" },
+
+  { id:"s19", bloc:"b2", niv:3, comps:["b2-au"],
+    titre:"S'arrêter et repartir à plusieurs",
+    obj:"Coordonner arrêt et départ en formation collective.",
+    desc:"Rouler 2-3 de front, s'arrêter ensemble au signal, redémarrer en file indienne.",
+    crit:"Redémarrage ordonné en file sans collision.", mat:"Plots, espace 20 m", duree:"12 min" },
+
+  // ── BLOC 3 — Voie publique ────────────────────────────────
+  { id:"s20", bloc:"b3", niv:3, comps:["b3-eq","b3-cr"],
+    titre:"Vérification avant sortie (\"Contrôle technique\")",
+    obj:"Vérifier systématiquement son vélo avant de circuler sur voie publique.",
+    desc:"Chaque élève contrôle son vélo sur checklist : pneus, freins, selle, lumières. En binôme — chacun contrôle celui de l'autre.",
+    crit:"Checklist complète validée pour 100% des vélos.", mat:"Checklist imprimée, outils basiques", duree:"10 min" },
+
+  { id:"s21", bloc:"b3", niv:3, comps:["b3-dr","b3-us"],
+    titre:"Rouler en file sur voie publique",
+    obj:"Maintenir une file indienne ordonnée en tenant sa droite.",
+    desc:"Sortie sur voie publique sécurisée. Rouler en file, 1 m d'écart, à droite. Signal d'arrêt transmis de l'avant vers l'arrière.",
+    crit:"File maintenue sur 500 m sans débordement ni collision.", mat:"Gilets jaunes, équipement vélo, parcours repéré", duree:"30 min" },
+
+  { id:"s22", bloc:"b3", niv:3, comps:["b3-cr","b3-pan"],
+    titre:"Intersections & priorités réelles",
+    obj:"Appliquer les règles de priorité aux intersections sur voie publique.",
+    desc:"Sortie incluant 2-3 intersections. Avant chaque intersection, arrêt ou ralentissement, regard à gauche et droite, application de la règle.",
+    crit:"Zéro infraction lors du passage des intersections.", mat:"Parcours pré-repéré, gilets jaunes", duree:"25 min" },
+
+  { id:"s23", bloc:"b3", niv:3, comps:["b3-gi"],
+    titre:"Giratoire réel",
+    obj:"Prendre sa place et circuler dans un vrai rond-point.",
+    desc:"Traversée d'un giratoire peu fréquenté : insertion, cédez le passage, signal de sortie, évitement des voitures.",
+    crit:"Traversée complète sans infraction ni arrêt d'urgence.", mat:"Parcours repéré, gilets, encadrants supplémentaires", duree:"20 min" },
+
+  { id:"s24", bloc:"b3", niv:3, comps:["b3-es"],
+    titre:"Emprunter piste / bande cyclable",
+    obj:"Identifier et utiliser les aménagements cyclables disponibles.",
+    desc:"Sortie avec tronçons variés : piste cyclable, bande cyclable, chaussée. Identifier chaque espace et s'y adapter.",
+    crit:"Bon espace emprunté à chaque type de voie.", mat:"Parcours mixte pré-repéré, gilets", duree:"25 min" },
+];
+
+/* ════════════════════════════════════════════════════
+   ÉTAT GLOBAL
+   ════════════════════════════════════════════════════ */
+let state = {
+  ecole:"", classe:"", effectif:24, lieu:"", seanceNum:1, seanceTotal:10,
+  groupes: [
+    { bloc:"b1", niv:1, effectif:8,  compsAuto:[], compsManual:[], situations:[], bilanComps:{}, bilanObs:"" },
+    { bloc:"b1", niv:2, effectif:8,  compsAuto:[], compsManual:[], situations:[], bilanComps:{}, bilanObs:"" },
+    { bloc:"b2", niv:2, effectif:8,  compsAuto:[], compsManual:[], situations:[], bilanComps:{}, bilanObs:"" },
+  ],
+};
+
+const GRP_COLORS = ["#d62b2b","#0055a4","#e07b00","#7b5ea7","#1a8a4a"];
+const GRP_NAMES  = ["Groupe A","Groupe B","Groupe C","Groupe D","Groupe E"];
+
+/* ════════════════════════════════════════════════════
+   NAVIGATION
+   ════════════════════════════════════════════════════ */
+function goStep(n) {
+  const ids = {1:"screen-1", 2:"screen-2", 3:"screen-fiche", 4:"screen-suivi", 5:"screen-questionnaire"};
+  document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
+  document.querySelectorAll('.step-btn').forEach(b => { b.classList.remove('active','done'); });
+  document.getElementById(ids[n]).classList.add('active');
+  document.getElementById(`sbtn-${n}`).classList.add('active');
+  for(let i=1;i<n;i++) document.getElementById(`sbtn-${i}`).classList.add('done');
+  if(n >= 2) readStep1();
+  if(n === 2) renderStep2();
+  if(n === 4) renderSuivi();
+  if(n === 5) renderQuestionnaire();
+  window.scrollTo(0,0);
+}
+
+/* ════════════════════════════════════════════════════
+   STEP 1
+   ════════════════════════════════════════════════════ */
+function renderGroupes() {
+  const c = document.getElementById('groupes-list');
+  if(state.groupes.length === 0) {
+    c.innerHTML = `<div class="empty"><div class="empty-icon">👥</div><div class="empty-text">Aucun groupe — cliquez sur "+ Ajouter"</div></div>`;
+    updateEffectifCheck(); return;
+  }
+  c.innerHTML = state.groupes.map((g,i) => {
+    const isB3 = g.bloc === 'b3';
+    return `
+    <div class="grp-row" id="grp-row-${i}">
+      <div class="grp-label">
+        <span class="grp-dot" style="background:${GRP_COLORS[i%5]}"></span>
+        ${GRP_NAMES[i]}
+      </div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;align-items:center">
+        <select onchange="updateGroupe(${i},'bloc',this.value)" style="flex:1;min-width:160px">
+          ${Object.entries(BLOCS_META).map(([k,v])=>`<option value="${k}" ${g.bloc===k?'selected':''}>${v.shortLabel} – ${v.label.split('–')[1].trim()}</option>`).join('')}
+        </select>
+        <select onchange="updateGroupe(${i},'niv',this.value)" style="flex:1;min-width:120px" ${isB3?'disabled':''}>
+          <option value="1" ${g.niv===1?'selected':''}>Niveau 1</option>
+          <option value="2" ${g.niv===2?'selected':''}>Niveau 2</option>
+          <option value="3" ${g.niv===3?'selected':''}>Niveau 3</option>
+        </select>
+        ${isB3 ? `<span style="font-size:11px;color:var(--green);font-weight:700">🏫→🛣️ Classe entière</span>` : ''}
+      </div>
+      <div class="grp-effectif">
+        <label class="label" style="text-align:center">Élèves</label>
+        <input type="number" value="${g.effectif}" min="1" max="60"
+          onchange="updateGroupe(${i},'effectif',+this.value)"
+          style="text-align:center;width:100%" ${isB3?'disabled':''}>
+      </div>
+      <button class="btn-ghost" onclick="removeGroupe(${i})" title="Supprimer">✕</button>
+    </div>`;
+  }).join('');
+  updateEffectifCheck();
+}
+
+function updateEffectifCheck() {
+  const total = state.groupes.reduce((s,g) => s + (g.bloc==='b3' ? 0 : g.effectif), 0);
+  const hasB3 = state.groupes.some(g => g.bloc==='b3');
+  const eff = +document.getElementById('f-effectif').value || state.effectif;
+  const el = document.getElementById('effectif-check');
+  if(state.groupes.length === 0) { el.innerHTML=''; return; }
+  if(hasB3) {
+    el.innerHTML = `<span style="color:var(--green)">ℹ️ Bloc 3 : toute la classe participe ensemble (${eff} élèves)</span>`;
+    return;
+  }
+  if(total === eff) {
+    el.innerHTML = `<span style="color:var(--green)">✓ Répartition correcte : ${total} / ${eff} élèves</span>`;
+  } else {
+    el.innerHTML = `<span style="color:var(--red)">⚠ Répartition : ${total} élèves assignés pour ${eff} au total</span>`;
+  }
+}
+
+function addGroupe() {
+  if(state.groupes.length >= 5) return;
+  state.groupes.push({ bloc:"b1", niv:1, effectif:6, compsAuto:[], compsManual:[], situations:[], bilanComps:{}, bilanObs:"" });
+  renderGroupes(); autosave();
+}
+function removeGroupe(i) { state.groupes.splice(i,1); renderGroupes(); autosave(); }
+function updateGroupe(i, field, val) {
+  if(field === 'niv') {
+    val = +val;
+    state.groupes[i]._filterNiv = String(val); // filtre étape 2 suit le niveau
+  }
+  state.groupes[i][field] = val;
+  // Si on passe en B3 : effectif = total classe
+  if(field === 'bloc' && val === 'b3') {
+    state.groupes[i].effectif = +document.getElementById('f-effectif').value || state.effectif;
+    state.groupes[i].niv = 3;
+    if(state.groupes.length > 1) {
+      if(confirm('En Bloc 3, toute la classe participe ensemble. Supprimer les autres groupes ?')) {
+        state.groupes = [state.groupes[i]];
+      }
+    }
+  }
+  renderGroupes(); autosave();
+}
+function readStep1() {
+  state.ecole = document.getElementById('f-ecole').value;
+  state.classe = document.getElementById('f-classe').value;
+  state.effectif = +document.getElementById('f-effectif').value;
+  state.lieu = document.getElementById('f-lieu').value;
+  state.seanceNum = +document.getElementById('f-seance-num').value;
+  state.seanceTotal = +document.getElementById('f-seance-total').value;
+}
+
+/* ════════════════════════════════════════════════════
+   STEP 2 — SITUATIONS PAR GROUPE
+   ════════════════════════════════════════════════════ */
+function renderStep2() {
+  const c = document.getElementById('groupes-sit-sections');
+  c.innerHTML = state.groupes.map((g,i) => renderGroupeSection(g,i)).join('');
+}
+
+function renderGroupeSection(g, i) {
+  const meta = BLOCS_META[g.bloc] || BLOCS_META.b1;
+  const blocComps = (COMPETENCES[g.bloc]||{comps:[]}).comps;
+  const color = GRP_COLORS[i%5];
+  const isB3 = g.bloc === 'b3';
+
+  // filtres actifs pour ce groupe
+  const filterBloc = g._filterBloc || g.bloc;
+  const filterNiv = g._filterNiv !== undefined ? g._filterNiv : String(g.niv);
+
+  // situations filtrées
+  let sits = SITUATIONS;
+  sits = sits.filter(s => s.bloc === filterBloc);
+  if(filterNiv !== 'all') sits = sits.filter(s => s.niv === +filterNiv);
+
+  const allBlocs = Object.keys(BLOCS_META);
+
+  return `
+  <div class="grp-section" id="grp-sec-${i}">
+    <div class="grp-section-head" style="background:${meta.bg}">
+      <div class="grp-num" style="background:${color}">${i+1}</div>
+      <div class="info">
+        <div class="gsh-title">${GRP_NAMES[i]} · ${isB3 ? state.effectif : g.effectif} élèves</div>
+        <div class="gsh-sub">${meta.label} · ${meta.contexte}</div>
+      </div>
+      <span class="bloc-tag b${g.bloc.slice(1)}">${meta.icon} ${meta.shortLabel}</span>
+    </div>
+    <div class="grp-section-body">
+      ${isB3 ? `<div class="bloc3-notice">
+        <strong>🛣️ Bloc 3 — Toute la classe sort ensemble</strong>
+        En Bloc 3, aucun sous-groupe n'est séparé à l'école. La différenciation s'opère via les rôles (cycliste, observateur, signaleur) ou les positions dans la file. Les critères d'évaluation sont communs à tous les élèves.
+      </div>` : ''}
+
+      <!-- Compétences visées -->
+      <div class="comp-section">
+        <div class="comp-title">Compétences du livret visées pour cette séance</div>
+        <div style="font-size:11px;color:#7a8a99;margin-bottom:8px;font-style:italic">
+          Les compétences <span style="display:inline-flex;align-items:center;gap:3px;background:#e8f0fb;border:1.5px solid var(--blue);border-radius:10px;padding:1px 7px;font-size:10px;color:var(--blue);font-weight:700;font-style:normal">auto ✦</span> sont déduites automatiquement des situations choisies. Cliquez pour confirmer ou ajouter.
+        </div>
+        <div class="comp-pills">
+          ${blocComps.map(comp => {
+            const isAuto   = (g.compsAuto||[]).includes(comp.id);
+            const isManual = (g.compsManual||[]).includes(comp.id);
+            let cls = '', badge = '';
+            if(isAuto && isManual) {
+              cls = 'sel-both';
+              badge = `<span class="comp-pill-badge badge-auto">✦ auto</span><span class="comp-pill-badge badge-manual">+ vous</span>`;
+            } else if(isAuto) {
+              cls = 'sel-auto';
+              badge = `<span class="comp-pill-badge badge-auto-blue">✦ auto</span>`;
+            } else if(isManual) {
+              cls = 'sel-manual';
+              badge = `<span class="comp-pill-badge badge-manual" style="background:rgba(255,255,255,.25);color:white">+ vous</span>`;
+            }
+            return `<div class="comp-pill ${cls}" onclick="toggleComp(${i},'${comp.id}')" title="${comp.detail} (N${comp.niv})">
+              ${comp.label}
+              <span class="comp-pill-niv">N${comp.niv}</span>
+              ${badge}
+            </div>`;
+          }).join('')}
+        </div>
+      </div>
+
+      <!-- Filtres situations -->
+      <div class="filters-bar">
+        <div class="filter-group">
+          <div class="filter-label">📂 Filtrer par bloc</div>
+          <div class="bloc-selector">
+            ${allBlocs.map(bk => {
+              const bm = BLOCS_META[bk];
+              return `<div class="bloc-pill b${bk.slice(1)} ${filterBloc===bk?'sel':''}" onclick="setFilter(${i},'bloc','${bk}')">
+                <span class="bloc-dot" style="background:${bm.color}"></span>${bm.shortLabel}
+              </div>`;
+            }).join('')}
+          </div>
+        </div>
+        <div class="filter-group">
+          <div class="filter-label">📊 Filtrer par niveau</div>
+          <div class="niv-selector">
+            <div class="niv-pill ${filterNiv==='all'?'sel':''}" onclick="setFilter(${i},'niv','all')">Tous</div>
+            <div class="niv-pill ${filterNiv==='1'?'sel':''}" onclick="setFilter(${i},'niv','1')">Niveau 1</div>
+            <div class="niv-pill ${filterNiv==='2'?'sel':''}" onclick="setFilter(${i},'niv','2')">Niveau 2</div>
+            <div class="niv-pill ${filterNiv==='3'?'sel':''}" onclick="setFilter(${i},'niv','3')">Niveau 3</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Situations -->
+      <div class="comp-section">
+        <div class="comp-title">Situations (sélectionnez 2 à 4) — ${sits.length} disponibles</div>
+        ${sits.length === 0
+          ? `<div class="alert alert-warn">⚠ Aucune situation pour ces filtres. Modifiez le filtre Bloc ou Niveau.</div>`
+          : `<div class="sit-grid">${sits.map(s => renderSitCard(s,i)).join('')}</div>`}
+      </div>
+
+      <!-- Bilan d'évaluation -->
+      <div class="bilan-section">
+        <div class="bilan-title">📊 Bilan d'évaluation — À renseigner après la séance</div>
+        <div class="bilan-grid">
+          ${effectiveComps(g).length === 0
+            ? `<div style="font-size:12px;color:#aab;font-style:italic">Sélectionnez des situations ou des compétences ci-dessus pour activer le bilan.</div>`
+            : effectiveComps(g).map(cid => {
+                const cLabel = getCompLabel(cid);
+                const val = (g.bilanComps||{})[cid] || '';
+                return `<div class="bilan-row">
+                  <div class="bilan-comp-name">${cLabel}</div>
+                  <div class="bilan-btns">
+                    <button class="bilan-btn ${val==='ok'?'sel-ok':''}" onclick="setBilan(${i},'${cid}','ok')">✓ Acquis</button>
+                    <button class="bilan-btn ${val==='prog'?'sel-prog':''}" onclick="setBilan(${i},'${cid}','prog')">⟳ En cours</button>
+                    <button class="bilan-btn ${val==='non'?'sel-non':''}" onclick="setBilan(${i},'${cid}','non')">✗ Non atteint</button>
+                  </div>
+                </div>`;
+              }).join('')}
+        </div>
+        <div class="bilan-obs">
+          <div class="label">Observations libres de l'enseignant</div>
+          <textarea placeholder="Ex : Groupe A maîtrise bien le freinage, difficultés sur le slalom. 3 élèves ont encore besoin de travailler l'équilibre en virage…" onchange="setBilanObs(${i},this.value)">${g.bilanObs||''}</textarea>
+        </div>
+      </div>
+
+    </div>
+  </div>`;
+}
+
+function renderSitCard(s, gi) {
+  const sel = (state.groupes[gi].situations||[]).includes(s.id);
+  const meta = BLOCS_META[s.bloc];
+  const spiralInfo = detectSpiral(s);
+  return `
+  <div class="sit-card ${sel?'selected':''}" id="sit-${gi}-${s.id}" onclick="toggleSit(${gi},'${s.id}')">
+    <div class="sit-card-top">
+      <div class="sit-check">${sel?'✓':''}</div>
+      <div style="flex:1">
+        <div class="sit-title">${s.titre}</div>
+        <div class="sit-comp">${s.comps.map(c => getCompLabel(c)).join(' · ')}</div>
+        <div class="sit-badges">
+          <span class="bloc-tag b${s.bloc.slice(1)}" style="font-size:9px">${meta.icon} ${meta.shortLabel}</span>
+          <span class="sit-niv-badge niv-${s.niv}">Niveau ${s.niv}</span>
+          ${spiralInfo ? `<span class="sit-spiral">↩︎ Spiral ${spiralInfo}</span>` : ''}
+        </div>
+      </div>
+      <span style="font-size:11px;color:#8a9aaa;font-weight:700;white-space:nowrap">${s.duree}</span>
+    </div>
+    <div class="sit-detail">
+      <div style="font-size:12px;color:#445;margin-bottom:6px">${s.desc}</div>
+      <div class="sit-meta">
+        <span class="sit-tag tag-obj">🎯 ${s.obj}</span>
+        <span class="sit-tag tag-crit">✓ ${s.crit}</span>
+        <span class="sit-tag" style="background:#f3f3f3;color:#666">📦 ${s.mat}</span>
+      </div>
+    </div>
+  </div>`;
+}
+
+function detectSpiral(sit) {
+  // Vérifie si une compétence de cette situation réapparaît dans d'autres blocs
+  for(const cid of sit.comps) {
+    for(const [bk, bd] of Object.entries(COMPETENCES)) {
+      const comp = bd.comps.find(c => c.id === cid);
+      if(comp && comp.spiral && comp.spiral.length > 0) {
+        return comp.spiral.map(b => BLOCS_META[b]?.shortLabel || b).join('/');
+      }
+    }
+  }
+  return null;
+}
+
+function getCompLabel(id) {
+  for(const bloc of Object.values(COMPETENCES)) {
+    const c = bloc.comps.find(c => c.id === id);
+    if(c) return c.label;
+  }
+  return id;
+}
+
+function setFilter(gi, type, val) {
+  if(type === 'bloc') state.groupes[gi]._filterBloc = val;
+  if(type === 'niv')  state.groupes[gi]._filterNiv  = val; // 'all', '1', '2' ou '3'
+  const sec = document.getElementById(`grp-sec-${gi}`);
+  if(sec) sec.outerHTML = renderGroupeSection(state.groupes[gi], gi);
+}
+
+/* ── helpers ── */
+function effectiveComps(g) {
+  // Union de compsAuto et compsManual, sans doublons
+  const all = new Set([...(g.compsAuto||[]), ...(g.compsManual||[])]);
+  return [...all];
+}
+
+function syncCompsAuto(gi) {
+  // Recalcule les compétences automatiques à partir des situations sélectionnées
+  const g = state.groupes[gi];
+  const auto = new Set();
+  (g.situations||[]).forEach(sid => {
+    const s = SITUATIONS.find(x => x.id === sid);
+    if(s) s.comps.forEach(cid => auto.add(cid));
+  });
+  g.compsAuto = [...auto];
+}
+
+function toggleComp(gi, cid) {
+  const g = state.groupes[gi];
+  if(!g.compsManual) g.compsManual = [];
+  const isAuto   = (g.compsAuto||[]).includes(cid);
+  const isManual = g.compsManual.includes(cid);
+
+  if(isAuto && !isManual) {
+    // Auto seule → on confirme manuellement (sel-both)
+    g.compsManual.push(cid);
+  } else if(isAuto && isManual) {
+    // Les deux → on retire la confirmation manuelle (retour à sel-auto)
+    g.compsManual = g.compsManual.filter(c => c !== cid);
+  } else if(!isAuto && isManual) {
+    // Manuel seul → on retire
+    g.compsManual = g.compsManual.filter(c => c !== cid);
+  } else {
+    // Aucune → ajout manuel
+    g.compsManual.push(cid);
+  }
+  const sec = document.getElementById(`grp-sec-${gi}`);
+  if(sec) sec.outerHTML = renderGroupeSection(g, gi);
+  autosave();
+}
+
+function toggleSit(gi, sid) {
+  const g = state.groupes[gi];
+  if(!g.situations) g.situations = [];
+  const idx = g.situations.indexOf(sid);
+  if(idx >= 0) {
+    g.situations.splice(idx, 1);
+  } else {
+    if(g.situations.length >= 4) { alert('Maximum 4 situations par groupe.'); return; }
+    g.situations.push(sid);
+  }
+  syncCompsAuto(gi);
+  const sec = document.getElementById(`grp-sec-${gi}`);
+  if(sec) sec.outerHTML = renderGroupeSection(g, gi);
+  autosave();
+}
+
+function setBilan(gi, cid, val) {
+  const g = state.groupes[gi];
+  if(!g.bilanComps) g.bilanComps = {};
+  g.bilanComps[cid] = g.bilanComps[cid] === val ? '' : val;
+  const sec = document.getElementById(`grp-sec-${gi}`);
+  if(sec) sec.outerHTML = renderGroupeSection(g, gi);
+  autosave();
+}
+
+function setBilanObs(gi, val) {
+  state.groupes[gi].bilanObs = val;
+  autosave();
+}
+
+/* ════════════════════════════════════════════════════
+   STEP 3 — FICHE DE SÉANCE
+   ════════════════════════════════════════════════════ */
+function generateFiche() {
+  readStep1();
+  goStep(3);
+  const out = document.getElementById('fiche-output');
+  const nbGroupes = state.groupes.length;
+  const colW = `repeat(${Math.min(nbGroupes,3)}, 1fr)`;
+
+  const allMat = new Set();
+  state.groupes.forEach(g => {
+    (g.situations||[]).forEach(sid => {
+      const s = SITUATIONS.find(x=>x.id===sid);
+      if(s) s.mat.split(',').forEach(m => allMat.add(m.trim()));
+    });
+  });
+
+  const date = new Date().toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'});
+
+  out.innerHTML = `
+  <div class="fiche-banner">
+    <div>
+      <div class="fiche-title">Fiche de Séance<br><span>Savoir Rouler à Vélo</span></div>
+      <div class="fiche-subtitle">Séance ${state.seanceNum} / ${state.seanceTotal} · Générée le ${date}</div>
+      <div class="fiche-chips">
+        ${state.ecole ? `<div class="fiche-chip">🏫 ${state.ecole}</div>` : ''}
+        ${state.classe ? `<div class="fiche-chip">👨‍🏫 ${state.classe}</div>` : ''}
+        ${state.lieu ? `<div class="fiche-chip">📍 ${state.lieu}</div>` : ''}
+        <div class="fiche-chip">👥 ${state.effectif} élèves · ${nbGroupes} groupe${nbGroupes>1?'s':''}</div>
+      </div>
+    </div>
+    <div style="text-align:right">
+      <div style="font-family:'Barlow Condensed',sans-serif;font-weight:900;font-size:52px;color:rgba(255,255,255,.15);line-height:1">${state.seanceNum}</div>
+      <div style="font-size:11px;color:rgba(255,255,255,.4);margin-top:-4px">SÉANCE</div>
+    </div>
+  </div>
+
+  <div class="fiche-infos" style="grid-template-columns:repeat(${Math.min(nbGroupes,4)},1fr)">
+    ${state.groupes.map((g,i) => {
+      const meta = BLOCS_META[g.bloc]||BLOCS_META.b1;
+      return `<div class="fi-cell">
+        <div class="fi-lbl" style="color:${GRP_COLORS[i%5]}">${GRP_NAMES[i]}</div>
+        <div class="fi-val">${g.bloc==='b3'?state.effectif:g.effectif} élèves</div>
+        <div style="margin-top:5px">
+          <span class="bloc-tag b${g.bloc.slice(1)}" style="font-size:9px">${meta.icon} ${meta.shortLabel}</span>
+          ${g.bloc!=='b3' ? `<span class="bloc-tag" style="background:#f3f3f3;color:#555;font-size:9px;margin-left:3px">N${g.niv}</span>` : ''}
+        </div>
+      </div>`;
+    }).join('')}
+  </div>
+
+  <div class="fiche-cols" style="grid-template-columns:${colW}">
+    ${state.groupes.map((g,i) => {
+      const meta = BLOCS_META[g.bloc]||BLOCS_META.b1;
+      const color = GRP_COLORS[i%5];
+      const compsViseesLabels = effectiveComps(g).map(c => getCompLabel(c));
+      const sitsData = (g.situations||[]).map(sid => SITUATIONS.find(s=>s.id===sid)).filter(Boolean);
+      return `
+      <div class="fiche-col">
+        <div class="fiche-col-head" style="background:${meta.bg}">
+          <span class="fcol-dot" style="background:${color}"></span>
+          <div>
+            <div class="fcol-title">${GRP_NAMES[i]} <span style="font-weight:400;font-size:12px">· ${g.bloc==='b3'?state.effectif:g.effectif} élèves</span></div>
+            <div class="fcol-sub">${meta.label} ${g.bloc!=='b3'?`· Niveau ${g.niv}`:''}</div>
+          </div>
+        </div>
+        <div class="fcol-comp">
+          ${compsViseesLabels.length > 0
+            ? `<span style="font-weight:700;color:#1a3a5a">Compétences visées :</span> ${compsViseesLabels.join(' · ')}`
+            : `<span style="color:#aab">Aucune compétence sélectionnée</span>`}
+        </div>
+        ${sitsData.length === 0
+          ? `<div class="fiche-sit"><span style="color:#aab;font-size:12px;font-style:italic">Aucune situation sélectionnée</span></div>`
+          : sitsData.map((s,si) => `
+            <div class="fiche-sit">
+              <span class="fiche-sit-num" style="background:${color}">${si+1}</span>
+              <span class="fiche-sit-name">${s.titre}</span>
+              <div class="fiche-sit-obj">🎯 ${s.obj}</div>
+              <div class="fiche-sit-crit">✓ ${s.crit}</div>
+              <div class="fiche-sit-mat">📦 ${s.mat} · <em>${s.duree}</em></div>
+            </div>`).join('')}
+      </div>`;
+    }).join('')}
+  </div>
+
+  ${allMat.size > 0 ? `
+  <div class="fiche-mat-bar">
+    <div class="mat-title">📦 Matériel total à préparer</div>
+    ${[...allMat].map(m=>`<span class="mat-chip">${m}</span>`).join('')}
+  </div>` : ''}
+
+  <!-- BILAN PAR GROUPE -->
+  <div class="fiche-bilan-section">
+    <div class="fiche-bilan-title">📊 Bilan d'évaluation — Par groupe</div>
+    <div class="fiche-bilan-cols" style="grid-template-columns:repeat(${Math.min(nbGroupes,3)},1fr)">
+      ${state.groupes.map((g,i) => {
+        const meta = BLOCS_META[g.bloc]||BLOCS_META.b1;
+        const color = GRP_COLORS[i%5];
+        const compsLabels = effectiveComps(g).map(cid => ({ id:cid, label:getCompLabel(cid), val:(g.bilanComps||{})[cid]||'' }));
+        return `
+        <div class="fiche-bilan-grp">
+          <div class="fiche-bilan-grp-head" style="background:${meta.bg}">
+            <span class="fcol-dot" style="background:${color}"></span>
+            <span class="fiche-bilan-grp-name">${GRP_NAMES[i]}</span>
+            <span class="bloc-tag b${g.bloc.slice(1)}" style="margin-left:auto;font-size:9px">${meta.shortLabel}</span>
+          </div>
+          <div class="fiche-bilan-grp-body">
+            ${compsLabels.length === 0
+              ? `<div style="font-size:11px;color:#aab;font-style:italic;padding:6px 0">Aucune compétence sélectionnée</div>`
+              : compsLabels.map(c => `
+                <div class="fiche-bilan-comp-row">
+                  <span>${c.label}</span>
+                  <div class="fiche-bilan-scale">
+                    <span class="fbs-item ${c.val==='ok'?'fbs-ok':''}">✓ Acquis</span>
+                    <span class="fbs-item ${c.val==='prog'?'fbs-prog':''}">⟳ En cours</span>
+                    <span class="fbs-item ${c.val==='non'?'fbs-non':''}">✗ Non atteint</span>
+                  </div>
+                </div>`).join('')}
+            <div class="fiche-bilan-obs">
+              <div class="fiche-bilan-obs-label">Observations</div>
+              <div class="fiche-bilan-obs-box">${g.bilanObs ? g.bilanObs : 'À compléter après la séance…'}</div>
+            </div>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+  </div>`;
+}
+
+/* ════════════════════════════════════════════════════
+   CORRESPONDANCE QUESTIONNAIRE ÉLÈVE ↔ COMPÉTENCES
+   Source : Annexe 3, questionnaire officiel SRAV
+   ════════════════════════════════════════════════════ */
+const QST_FAMILLES = [
+  {
+    id:"qf1", label:"Équipement & sécurité", color:"#7b5ea7",
+    items:[
+      { id:"q1a", label:"Mettre mon casque et vérifier les éléments de sécurité (freins, pneus…)", comps:["b0-eq","b1-eq","b2-eq","b3-eq"] },
+    ]
+  },
+  {
+    id:"qf2", label:"Maîtriser mon équilibre", color:"#d62b2b",
+    items:[
+      { id:"q2a", label:"Rouler en libérant des appuis (pieds ou mains)", comps:["b0-mv","b1-ap"] },
+      { id:"q2b", label:"Sauter un obstacle (monter, descendre d'une planche)", comps:["b1-vi"] },
+    ]
+  },
+  {
+    id:"qf3", label:"Maîtriser ma trajectoire", color:"#d62b2b",
+    items:[
+      { id:"q3a", label:"Rouler en ligne droite", comps:["b1-ld"] },
+      { id:"q3b", label:"Réaliser un enchaînement de virages", comps:["b1-ld","b1-ci"] },
+      { id:"q3c", label:"Réaliser une trajectoire montante (rouler en danseuse)", comps:["b1-vt"] },
+      { id:"q3d", label:"Réaliser une trajectoire descendante (freiner avec la roue arrière)", comps:["b1-fr"] },
+    ]
+  },
+  {
+    id:"qf4", label:"Maîtriser ma vitesse", color:"#e07b00",
+    items:[
+      { id:"q4a", label:"Accélérer, pédaler avec plus de force", comps:["b1-vt"] },
+      { id:"q4b", label:"Freiner ou pédaler avec moins de force", comps:["b1-fr"] },
+      { id:"q4c", label:"Entretenir une vitesse constante", comps:["b1-vt"] },
+      { id:"q4d", label:"Utiliser le dérailleur en fonction du terrain", comps:["b1-vt"] },
+    ]
+  },
+  {
+    id:"qf5", label:"Gérer une distance", color:"#e07b00",
+    items:[
+      { id:"q5a", label:"Rouler en file indienne et gérer ma distance à l'autre", comps:["b2-au","b3-dr"] },
+      { id:"q5b", label:"Rouler à 2 côte à côte", comps:["b2-au"] },
+      { id:"q5c", label:"Rouler en groupe", comps:["b2-au","b3-dr"] },
+      { id:"q5d", label:"M'arrêter au signal sans entrer en collision avec le vélo devant moi", comps:["b1-fr","b2-au"] },
+    ]
+  },
+  {
+    id:"qf6", label:"Gérer un parcours / sortie sur route", color:"#1a8a4a",
+    items:[
+      { id:"q6a", label:"Respecter les règles du code de la route", comps:["b2-cr","b3-cr","b1-pan","b2-pan","b3-pan"] },
+      { id:"q6b", label:"Avertir d'un dépassement ou d'un changement de direction", comps:["b2-co","b3-us"] },
+      { id:"q6c", label:"Prévenir d'un obstacle particulier", comps:["b2-co"] },
+      { id:"q6d", label:"Appliquer les règles de traversée de route ou de carrefour", comps:["b2-gi","b3-gi","b3-cr"] },
+      { id:"q6e", label:"Emprunter la bonne voie (piste cyclable, bande, chaussée)", comps:["b2-es","b3-es"] },
+    ]
+  },
+  {
+    id:"qf7", label:"En cas d'accident", color:"#1c2b3a",
+    items:[
+      { id:"q7a", label:"Prévenir les autres sans prendre de risque", comps:[] },
+      { id:"q7b", label:"Appeler le numéro d'urgence adapté et donner un message d'alerte", comps:[] },
+    ]
+  },
+];
+
+/* ════════════════════════════════════════════════════
+   CYCLE — ÉTAT PERSISTANT
+   ════════════════════════════════════════════════════ */
+let cycle = { ecole:"", classe:"", seances:[] };
+
+function cycleCompsWorked() {
+  const s = new Set();
+  cycle.seances.forEach(sn => sn.groupes.forEach(g => {
+    [...(g.compsAuto||[]), ...(g.compsManual||[])].forEach(c => s.add(c));
+  }));
+  return s;
+}
+
+/* ════════════════════════════════════════════════════
+   SAUVEGARDE / EXPORT / IMPORT
+   ════════════════════════════════════════════════════ */
+function sauvegarderSeance() {
+  readStep1();
+  // Lire les bilans rapides depuis l'UI de l'étape 4
+  syncBilanRapide();
+  const snap = {
+    num: state.seanceNum,
+    total: state.seanceTotal,
+    date: new Date().toLocaleDateString('fr-FR'),
+    lieu: state.lieu,
+    ecole: state.ecole,
+    classe: state.classe,
+    effectif: state.effectif,
+    groupes: JSON.parse(JSON.stringify(state.groupes))
+  };
+  const idx = cycle.seances.findIndex(s => s.num === snap.num);
+  if(idx >= 0) cycle.seances[idx] = snap;
+  else cycle.seances.push(snap);
+  cycle.seances.sort((a,b) => a.num - b.num);
+  cycle.ecole = state.ecole;
+  cycle.classe = state.classe;
+  return snap;
+}
+
+function exporterCycle() {
+  sauvegarderSeance();
+  const nom = `SRAV-${(cycle.classe||'Classe').replace(/[\s\/\\]/g,'-')}-cycle.json`;
+  const blob = new Blob([JSON.stringify(cycle, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = nom;
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(() => { document.body.removeChild(a); URL.revokeObjectURL(url); }, 500);
+  showToast(`💾 Cycle sauvegardé : ${nom}`);
+  renderSuivi();
+}
+
+function importCycle(input) {
+  const file = input.files && input.files[0];
+  if(!file) return;
+  _readCycleFile(file);
+  input.value = '';
+}
+
+function handleDrop(e) {
+  e.preventDefault();
+  document.getElementById('import-dropzone').classList.remove('drag');
+  const file = e.dataTransfer.files && e.dataTransfer.files[0];
+  if(!file || !file.name.endsWith('.json')) {
+    showToast('⚠ Déposez un fichier .json valide');
+    return;
+  }
+  _readCycleFile(file);
+}
+
+function _readCycleFile(file) {
+  const reader = new FileReader();
+  reader.onload = e => {
+    try {
+      const data = JSON.parse(e.target.result);
+      if(!Array.isArray(data.seances)) throw new Error('Format invalide');
+      cycle = data;
+      // Restaurer depuis la dernière séance sauvegardée
+      const last = cycle.seances[cycle.seances.length - 1];
+      if(last) {
+        state.seanceNum   = (last.num || 0) + 1;
+        state.seanceTotal = last.total || state.seanceTotal;
+        state.lieu        = last.lieu  || '';
+        state.effectif    = last.effectif || state.effectif;
+        state.ecole       = last.ecole || cycle.ecole || '';
+        state.classe      = last.classe || cycle.classe || '';
+        // Copie des groupes de la dernière séance — bilans remis à zéro pour la nouvelle
+        state.groupes = JSON.parse(JSON.stringify(last.groupes)).map(g => ({
+          ...g,
+          bilanComps: {},
+          bilanObs:   '',
+          situations: [],        // séance suivante = nouvelle sélection
+          compsAuto:  [],
+          _filterBloc: g.bloc,
+          _filterNiv:  String(g.niv)
+        }));
+        // Sync champs étape 1
+        const fields = {
+          'f-ecole': state.ecole, 'f-classe': state.classe,
+          'f-effectif': state.effectif, 'f-lieu': state.lieu,
+          'f-seance-num': state.seanceNum, 'f-seance-total': state.seanceTotal
+        };
+        Object.entries(fields).forEach(([id,val]) => {
+          const el = document.getElementById(id);
+          if(el) el.value = val;
+        });
+        renderGroupes();
+      }
+      renderSuivi();
+      showToast(`✓ ${cycle.seances.length} séance(s) chargée(s) — prêt pour la séance ${state.seanceNum}`);
+      autosave();
+    } catch(err) {
+      showToast('⚠ Fichier invalide — utilisez un fichier .json exporté par cet outil');
+    }
+  };
+  reader.readAsText(file);
+}
+
+/* ────── Bilan rapide (dans l'écran Suivi) ────── */
+function renderBilanRapide() {
+  const c = document.getElementById('bilan-rapide-list');
+  if(!c) return;
+  if(state.groupes.length === 0) {
+    c.innerHTML = `<div style="padding:16px;font-size:13px;color:#aab;font-style:italic">Aucun groupe configuré. Commencez par l'étape 1.</div>`;
+    return;
+  }
+  c.innerHTML = state.groupes.map((g,i) => {
+    const meta  = BLOCS_META[g.bloc] || BLOCS_META.b1;
+    const color = GRP_COLORS[i%5];
+    const comps = effectiveComps(g);
+    return `
+    <div style="border-bottom:1px solid var(--line);padding:14px 18px" id="br-grp-${i}">
+      <div style="display:flex;align-items:center;gap:8px;margin-bottom:10px">
+        <span style="width:10px;height:10px;border-radius:50%;background:${color};display:inline-block"></span>
+        <span style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:15px">${GRP_NAMES[i]}</span>
+        <span class="bloc-tag b${g.bloc.slice(1)}" style="font-size:9px">${meta.shortLabel}</span>
+        <span style="font-size:11px;color:#7a8a99;margin-left:4px">${g.bloc==='b3'?state.effectif:g.effectif} élèves</span>
+      </div>
+      ${comps.length === 0
+        ? `<div style="font-size:12px;color:#aab;font-style:italic">Aucune compétence — sélectionnez des situations en étape 2 d'abord.</div>`
+        : `<div style="display:flex;flex-direction:column;gap:6px;margin-bottom:10px">
+            ${comps.map(cid => {
+              const val = (g.bilanComps||{})[cid] || '';
+              return `<div style="display:grid;grid-template-columns:1fr auto;gap:10px;align-items:center;background:var(--mist);border-radius:6px;padding:6px 10px">
+                <span style="font-size:12px;font-weight:700;color:var(--slate)">${getCompLabel(cid)}</span>
+                <div style="display:flex;gap:4px">
+                  <button class="bilan-btn ${val==='ok'?'sel-ok':''}" onclick="setBilanSuivi(${i},'${cid}','ok')">✓ Acquis</button>
+                  <button class="bilan-btn ${val==='prog'?'sel-prog':''}" onclick="setBilanSuivi(${i},'${cid}','prog')">⟳ En cours</button>
+                  <button class="bilan-btn ${val==='non'?'sel-non':''}" onclick="setBilanSuivi(${i},'${cid}','non')">✗ Non atteint</button>
+                </div>
+              </div>`;
+            }).join('')}
+          </div>
+          <div>
+            <label class="label">Observations (élèves à surveiller, points clés…)</label>
+            <textarea rows="2" placeholder="Ex : Lucas — freinage encore trop tardif. Emma prête pour passer au niveau 2…" 
+              onchange="setBilanObsSuivi(${i},this.value)"
+              style="font-size:13px">${g.bilanObs||''}</textarea>
+          </div>`}
+    </div>`;
+  }).join('');
+}
+
+function setBilanSuivi(gi, cid, val) {
+  const g = state.groupes[gi];
+  if(!g.bilanComps) g.bilanComps = {};
+  g.bilanComps[cid] = g.bilanComps[cid] === val ? '' : val;
+  renderBilanRapide();
+  autosave();
+}
+
+function setBilanObsSuivi(gi, val) {
+  state.groupes[gi].bilanObs = val;
+  autosave();
+}
+
+function syncBilanRapide() {
+  // Les bilans sont déjà dans state.groupes via setBilanSuivi / setBilanObsSuivi
+  // Les textareas : on relit pour ne pas perdre du texte non déclenché par onchange
+  state.groupes.forEach((g,i) => {
+    const wrap = document.getElementById(`br-grp-${i}`);
+    if(!wrap) return;
+    const ta = wrap.querySelector('textarea');
+    if(ta) g.bilanObs = ta.value;
+  });
+}
+
+/* ════════════════════════════════════════════════════
+   RENDU SUIVI
+   ════════════════════════════════════════════════════ */
+function renderSuivi() {
+  renderBilanRapide();
+  const hasSeances = cycle.seances.length > 0;
+  document.getElementById('cycle-count').textContent = hasSeances ? `${cycle.seances.length} séance(s) dans le cycle` : '';
+
+  // ── Synthèse progression ──
+  const wrap = document.getElementById('cycle-summary-wrap');
+  if(!hasSeances) { wrap.innerHTML = ''; }
+  else {
+    const allComps = new Map();
+    cycle.seances.forEach(sn => sn.groupes.forEach(g => {
+      [...(g.compsAuto||[]), ...(g.compsManual||[])].forEach(cid => {
+        if(!allComps.has(cid)) allComps.set(cid, getCompLabel(cid));
+      });
+    }));
+
+    wrap.innerHTML = allComps.size === 0 ? '' : `
+    <div class="cycle-summary card" style="margin-bottom:16px">
+      <div class="cycle-summary-head card-head">
+        <div class="card-head-icon" style="background:#e6f4ec">📈</div>
+        <span class="card-title">Progression sur le cycle — ${cycle.seances.length} séance(s)</span>
+        <span style="margin-left:auto;font-size:10px;color:#7a8a99;display:flex;gap:8px;align-items:center">
+          <span><span class="cycle-dot ok" style="display:inline-flex;width:12px;height:12px;font-size:7px"> </span> Acquis</span>
+          <span><span class="cycle-dot en" style="display:inline-flex;width:12px;height:12px;font-size:7px"> </span> En cours</span>
+          <span><span class="cycle-dot non" style="display:inline-flex;width:12px;height:12px;font-size:7px"> </span> Non atteint</span>
+          <span><span class="cycle-dot nd" style="display:inline-flex;width:12px;height:12px;font-size:7px"> </span> Travaillé</span>
+        </span>
+      </div>
+      ${[...allComps.entries()].map(([cid, clabel]) => {
+        const dots = cycle.seances.map(sn => {
+          for(const g of sn.groupes) {
+            if([...(g.compsAuto||[]),...(g.compsManual||[])].includes(cid)) {
+              const val = (g.bilanComps||{})[cid] || 'nd';
+              const titles = {ok:'Acquis',prog:'En cours',non:'Non atteint',nd:'Travaillé sans bilan'};
+              return `<div class="cycle-dot ${val==='prog'?'en':val}" title="S${sn.num} · ${titles[val]||val}">${sn.num}</div>`;
+            }
+          }
+          return '';
+        }).filter(Boolean).join('');
+        return `<div class="cycle-comp-row">
+          <div class="cycle-comp-label">${clabel}</div>
+          <div class="cycle-comp-dots">${dots||'<span style="font-size:11px;color:#aab;font-style:italic">non encore évalué</span>'}</div>
+        </div>`;
+      }).join('')}
+    </div>`;
+  }
+
+  // ── Historique séances ──
+  const list = document.getElementById('seance-history-list');
+  if(!hasSeances) {
+    list.innerHTML = `<div class="empty" style="padding:24px"><div class="empty-icon">📭</div><div class="empty-text">Aucune séance sauvegardée</div><p style="font-size:12px;color:#aab;margin-top:6px">Remplissez le bilan ci-dessus et cliquez "Sauvegarder &amp; exporter"</p></div>`;
+    return;
+  }
+  list.innerHTML = cycle.seances.map((sn,idx) => {
+    const groupsDesc = sn.groupes.map((g,gi) => `${GRP_NAMES[gi]} (${(BLOCS_META[g.bloc]||BLOCS_META.b1).shortLabel})`).join(', ');
+    return `
+    <div class="seance-card">
+      <div class="seance-card-head" onclick="toggleSeanceCard(${idx})">
+        <div class="seance-num">${sn.num}</div>
+        <div class="seance-meta">
+          <div class="seance-meta-title">Séance ${sn.num} / ${sn.total} · ${sn.date}</div>
+          <div class="seance-meta-sub">${sn.lieu ? sn.lieu+' · ' : ''}${groupsDesc}</div>
+        </div>
+        <span class="seance-expand" id="seance-expand-${idx}">▼ Voir le bilan</span>
+      </div>
+      <div class="seance-card-body" id="seance-body-${idx}">
+        ${sn.groupes.map((g,gi) => {
+          const meta  = BLOCS_META[g.bloc]||BLOCS_META.b1;
+          const comps = [...new Set([...(g.compsAuto||[]),...(g.compsManual||[])])];
+          const valLabels = {ok:'✓ Acquis', prog:'⟳ En cours', non:'✗ Non atteint', nd:'— Sans bilan'};
+          return comps.length === 0
+            ? `<p style="font-size:12px;color:#aab;font-style:italic;margin-bottom:8px">${GRP_NAMES[gi]} — aucune compétence</p>`
+            : `<div style="margin-bottom:14px">
+                <div style="font-family:'Barlow Condensed',sans-serif;font-weight:700;font-size:14px;color:${meta.color};margin-bottom:6px">${GRP_NAMES[gi]} · ${meta.label}</div>
+                <table class="prog-table">
+                  <tr><th>Compétence</th><th>Résultat du groupe</th></tr>
+                  ${comps.map(cid => {
+                    const val = (g.bilanComps||{})[cid]||'nd';
+                    return `<tr><td>${getCompLabel(cid)}</td><td><span class="prog-dot prog-${val==='prog'?'en':val}">${valLabels[val]||val}</span></td></tr>`;
+                  }).join('')}
+                </table>
+                ${g.bilanObs ? `<div style="font-size:11px;color:#5a7090;margin-top:6px;padding:6px 10px;background:#f7f9fb;border-radius:4px;font-style:italic">💬 ${g.bilanObs}</div>` : ''}
+              </div>`;
+        }).join('')}
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function toggleSeanceCard(idx) {
+  const body = document.getElementById(`seance-body-${idx}`);
+  const exp  = document.getElementById(`seance-expand-${idx}`);
+  const open = body.classList.toggle('open');
+  exp.textContent = open ? '▲ Masquer' : '▼ Voir le bilan';
+}
+
+/* ════════════════════════════════════════════════════
+   QUESTIONNAIRE ÉLÈVE
+   ════════════════════════════════════════════════════ */
+function renderQuestionnaire() {
+  const worked = cycleCompsWorked();
+  const hideUnused = document.getElementById('qst-hide-unused')?.checked;
+  const date = new Date().toLocaleDateString('fr-FR',{day:'numeric',month:'long',year:'numeric'});
+
+  const body = QST_FAMILLES.map(fam => {
+    const items = fam.items.filter(it => {
+      if(hideUnused && it.comps.length > 0 && !it.comps.some(c => worked.has(c))) return false;
+      return true;
+    });
+    if(items.length === 0) return '';
+
+    const rows = items.map(it => {
+      const isWorked = it.comps.length === 0 || it.comps.some(c => worked.has(c));
+      const dimStyle = (!isWorked) ? 'opacity:.35' : '';
+      return `<div class="qst-item" style="${dimStyle}">
+        <div class="qst-item-label">${!isWorked ? '○ ' : ''}${it.label}</div>
+        <div class="qst-check-cell"><div class="qst-box"></div></div>
+        <div class="qst-check-cell"><div class="qst-box"></div></div>
+        <div class="qst-check-cell"><div class="qst-box"></div></div>
+      </div>`;
+    }).join('');
+
+    return `<div class="qst-famille">
+      <div class="qst-famille-head" style="background:${fam.color}">${fam.label}</div>
+      <div class="qst-col-header">
+        <div class="qst-col-label">Je suis capable de…</div>
+        <div class="qst-col-label">OUI</div>
+        <div class="qst-col-label">NON</div>
+        <div class="qst-col-label">UN PEU</div>
+      </div>
+      ${rows}
+    </div>`;
+  }).join('');
+
+  document.getElementById('qst-output').innerHTML = `
+  <div class="qst-header">
+    <div>
+      <div class="qst-title">Auto-évaluation · Savoir Rouler à Vélo</div>
+      <div class="qst-subtitle">${cycle.classe||'Classe'} · ${date}</div>
+    </div>
+    <div style="text-align:right">
+      <div style="font-size:10px;color:rgba(255,255,255,.5);margin-bottom:4px">PRÉNOM</div>
+      <input class="qst-prenom" placeholder="____________________" />
+    </div>
+  </div>
+  ${body}`;
+}
+
+function printQuestionnaire() {
+  renderQuestionnaire();
+  // Ajouter la classe sur body pour activer les règles CSS print-qst
+  document.body.classList.add('print-qst');
+  window.print();
+  // Retirer la classe après l'impression
+  setTimeout(() => document.body.classList.remove('print-qst'), 500);
+}
+
+/* ════════════════════════════════════════════════════
+   AUTOSAVE — localStorage
+   Sauvegarde automatique à chaque action significative
+   ════════════════════════════════════════════════════ */
+const LS_KEY_STATE = 'srav_state_v5';
+const LS_KEY_CYCLE = 'srav_cycle_v5';
+let _autosaveTimer = null;
+
+function autosave() {
+  // Indiquer "en cours"
+  const dot = document.getElementById('autosave-dot');
+  const msg = document.getElementById('autosave-msg');
+  const bar = document.getElementById('autosave-bar');
+  if(dot) dot.classList.add('saving');
+  if(bar) bar.classList.remove('hidden');
+
+  clearTimeout(_autosaveTimer);
+  _autosaveTimer = setTimeout(() => {
+    try {
+      // Lire les éventuels textes non encore déclenchés
+      syncBilanRapide();
+      readStep1();
+      localStorage.setItem(LS_KEY_STATE, JSON.stringify(state));
+      localStorage.setItem(LS_KEY_CYCLE, JSON.stringify(cycle));
+      const now = new Date().toLocaleTimeString('fr-FR', {hour:'2-digit', minute:'2-digit'});
+      if(dot) dot.classList.remove('saving');
+      if(msg) msg.textContent = `Sauvegarde automatique — ${now}`;
+    } catch(e) {
+      // localStorage plein ou désactivé — on ignore silencieusement
+      if(dot) dot.classList.remove('saving');
+    }
+  }, 800); // délai pour grouper les appels rapides
+}
+
+function restaurerSession() {
+  try {
+    const savedState = localStorage.getItem(LS_KEY_STATE);
+    const savedCycle = localStorage.getItem(LS_KEY_CYCLE);
+    if(savedState) {
+      const s = JSON.parse(savedState);
+      // Restaurer state
+      Object.assign(state, s);
+      // Sync champs étape 1
+      const fields = {
+        'f-ecole': state.ecole, 'f-classe': state.classe,
+        'f-effectif': state.effectif, 'f-lieu': state.lieu,
+        'f-seance-num': state.seanceNum, 'f-seance-total': state.seanceTotal
+      };
+      Object.entries(fields).forEach(([id,val]) => {
+        const el = document.getElementById(id);
+        if(el) el.value = val;
+      });
+      renderGroupes();
+    }
+    if(savedCycle) {
+      const c = JSON.parse(savedCycle);
+      Object.assign(cycle, c);
+    }
+    document.getElementById('session-banner').style.display = 'none';
+    showToast('✓ Session restaurée');
+    autosave();
+  } catch(e) {
+    showToast('⚠ Impossible de restaurer la session');
+  }
+}
+
+function ignorerSession() {
+  document.getElementById('session-banner').style.display = 'none';
+  localStorage.removeItem(LS_KEY_STATE);
+  localStorage.removeItem(LS_KEY_CYCLE);
+}
+
+function verifierSessionExistante() {
+  try {
+    const saved = localStorage.getItem(LS_KEY_STATE);
+    if(!saved) return;
+    const s = JSON.parse(saved);
+    // Il y a quelque chose de non-vide : montrer la bannière
+    const hasData = s.ecole || s.classe || s.groupes?.some(g => g.situations?.length > 0);
+    if(hasData) {
+      document.getElementById('session-banner').style.display = 'flex';
+    }
+  } catch(e) { /* ignore */ }
+}
+
+/* ════════════════════════════════════════════════════
+   RÉINITIALISATION
+   ════════════════════════════════════════════════════ */
+function confirmerReinit() {
+  const modal = document.getElementById('reinit-modal');
+  modal.style.display = 'flex';
+}
+function fermerReinit() {
+  document.getElementById('reinit-modal').style.display = 'none';
+}
+function reinitialiser() {
+  // Vider localStorage
+  localStorage.removeItem(LS_KEY_STATE);
+  localStorage.removeItem(LS_KEY_CYCLE);
+  // Remettre l'état à zéro
+  state = {
+    ecole:"", classe:"", effectif:24, lieu:"", seanceNum:1, seanceTotal:10,
+    groupes: []
+  };
+  cycle = { ecole:"", classe:"", seances:[] };
+  // Sync UI étape 1
+  ['f-ecole','f-classe','f-lieu'].forEach(id => { const el=document.getElementById(id); if(el) el.value=''; });
+  document.getElementById('f-effectif').value = 24;
+  document.getElementById('f-seance-num').value = 1;
+  document.getElementById('f-seance-total').value = 10;
+  renderGroupes();
+  // Cacher la bannière de session si visible
+  const banner = document.getElementById('session-banner');
+  if(banner) banner.style.display = 'none';
+  // Cacher la barre autosave
+  const bar = document.getElementById('autosave-bar');
+  if(bar) bar.classList.add('hidden');
+  // Fermer le modal et revenir à l'étape 1
+  fermerReinit();
+  goStep(1);
+  showToast('🗑 Outil réinitialisé — nouvelle session prête');
+}
+
+// Fermer le modal en cliquant à l'extérieur
+document.getElementById('reinit-modal').addEventListener('click', function(e) {
+  if(e.target === this) fermerReinit();
+});
+function showToast(msg) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+/* ════════════════════════════════════════════════════
+   INIT
+   ════════════════════════════════════════════════════ */
+renderGroupes();
+document.getElementById('f-effectif').addEventListener('input', () => { updateEffectifCheck(); autosave(); });
+
+// Autosave sur tous les champs étape 1
+['f-ecole','f-classe','f-lieu','f-seance-num','f-seance-total'].forEach(id => {
+  const el = document.getElementById(id);
+  if(el) el.addEventListener('input', autosave);
+});
+
+// Drag-drop JSON sur l'écran suivi
+document.addEventListener('dragover', e => e.preventDefault());
+document.addEventListener('drop', e => {
+  e.preventDefault();
+  if(document.getElementById('screen-suivi').classList.contains('active')) {
+    const file = e.dataTransfer.files && e.dataTransfer.files[0];
+    if(file && file.name.endsWith('.json')) _readCycleFile(file);
+  }
+});
+
+// Vérifier si une session précédente existe
+verifierSessionExistante();
+</script>
+<!-- ══════════════════════════════════════════════
+     GOATCOUNTER — Analytics RGPD-friendly
+     Remplacez VOTRE-NOM par votre identifiant
+     créé sur goatcounter.com
+     ══════════════════════════════════════════════ -->
+<script data-goatcounter="https://VOTRE-NOM.goatcounter.com/count"
+        async src="//gc.zgo.at/count.js"></script>
+</body>
+</html>
